@@ -172,56 +172,6 @@ class DB:
                  ORDER BY ts DESC LIMIT ?"""
         return [dict(r) for r in self.conn.execute(sql, (code, limit)).fetchall()]
 
-    def quote_history_range(self, code: str, days: int = 1,
-                            max_pts: int = 400) -> dict:
-        """区间历史（多日回看用）：按 days 取数并按粒度降采样。
-
-        days=1 → 5 分钟级；days=7 → 小时级；days>=30 → 天级（末日末值）。
-        返回 {points: [{ts, price, premium, est_premium, amount}], stats, data_days}
-        stats 基于区间内全部原始点计算（非降采样点），保证统计准确。
-        """
-        import time as _t
-        now = int(_t.time())
-        start = now - days * 86400
-        rows = self.conn.execute(
-            """SELECT ts, price, premium, est_premium, amount FROM quotes
-               WHERE code = ? AND ts >= ? ORDER BY ts ASC""",
-            (code, start)).fetchall()
-        if not rows:
-            return {"points": [], "stats": None, "data_days": 0}
-        # 数据实际覆盖天数（按北京自然日）
-        span_days = len({_t.strftime("%Y-%m-%d", _t.localtime(r["ts"]))
-                         for r in rows})
-        # 统计：溢价取 est_premium 优先、premium 兜底
-        def prem(r):
-            return r["est_premium"] if r["est_premium"] is not None else r["premium"]
-        ps = [prem(r) for r in rows if prem(r) is not None]
-        prices = [r["price"] for r in rows if r["price"] is not None]
-        last = rows[-1]
-        stats = {
-            "n": len(rows),
-            "prem_max": max(ps) if ps else None,
-            "prem_min": min(ps) if ps else None,
-            "prem_avg": sum(ps) / len(ps) if ps else None,
-            "prem_last": prem(last),
-            "price_max": max(prices) if prices else None,
-            "price_min": min(prices) if prices else None,
-            "first_ts": rows[0]["ts"], "last_ts": last["ts"],
-        }
-        # 降采样：按 bucket 取每桶最后一点
-        bucket = 300 if days <= 1 else (3600 if days <= 7 else 86400)
-        agg: dict[int, dict] = {}
-        for r in rows:
-            b = r["ts"] // bucket
-            agg[b] = {"ts": r["ts"], "price": r["price"],
-                      "premium": r["premium"], "est_premium": r["est_premium"],
-                      "amount": r["amount"]}
-        pts = list(agg.values())
-        if len(pts) > max_pts:  # 再按步长抽稀
-            step = len(pts) / max_pts
-            pts = [pts[int(i * step)] for i in range(max_pts)]
-        return {"points": pts, "stats": stats, "data_days": span_days}
-
     def latest_ts(self) -> int:
         row = self.conn.execute("SELECT MAX(ts) AS mx FROM quotes").fetchone()
         return int(row["mx"]) if row and row["mx"] else 0
