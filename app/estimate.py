@@ -17,9 +17,8 @@ import logging
 import threading
 import time
 
-import httpx
-
 from .config import UA, HTTP_TIMEOUT
+from .http import get as http_get
 
 log = logging.getLogger("lof.estimate")
 
@@ -65,7 +64,7 @@ _official_lock = threading.Lock()
 _official_cache = {"ts": 0.0, "data": {}}
 _OFFICIAL_TTL = 180
 
-# 天天基金估值列表接口（akshare fund_value_estimation_em 同源；httpx 直连，
+# 天天基金估值列表接口（akshare fund_value_estimation_em 同源；app.http 客户端，
 # 免 akshare/pandas 依赖——GitHub Actions 云端采集走这条）
 _GUZHI_URL = "https://api.fund.eastmoney.com/FundGuZhi/GetFundGZList"
 _GUZHI_HEADERS = {"User-Agent": UA, "Referer": "https://fund.eastmoney.com/"}
@@ -90,8 +89,8 @@ def fetch_official_estimates_direct() -> dict:
     params = {"type": 8, "sort": "3", "orderType": "desc", "canbuy": "0",
               "pageIndex": "1", "pageSize": "20000",
               "_": int(time.time() * 1000)}
-    with httpx.Client(timeout=HTTP_TIMEOUT, headers=_GUZHI_HEADERS) as cli:
-        data = cli.get(_GUZHI_URL, params=params).json()
+    data = http_get(_GUZHI_URL, params=params, timeout=HTTP_TIMEOUT,
+                    headers=_GUZHI_HEADERS).json()
     lst = ((data.get("Data") or {}).get("list")) or []
     out = {}
     for row in lst:
@@ -178,9 +177,10 @@ _ANCHOR_TTL = 60
 
 def _fetch_sina_anchors() -> dict:
     syms = [s for s, _ in SINA_ANCHORS.values()]
-    with httpx.Client(timeout=HTTP_TIMEOUT,
-                      headers={"User-Agent": UA, "Referer": "https://finance.sina.com.cn"}) as cli:
-        text = cli.get("https://hq.sinajs.cn/list=" + ",".join(syms)).text
+    text = http_get("https://hq.sinajs.cn/list=" + ",".join(syms),
+                    timeout=HTTP_TIMEOUT, encoding="gbk",
+                    headers={"User-Agent": UA,
+                             "Referer": "https://finance.sina.com.cn"}).text
     out = {}
     for line in text.splitlines():
         if "=" not in line or '"' not in line:
@@ -204,11 +204,10 @@ def _fetch_sina_anchors() -> dict:
 
 def _fetch_em_anchors() -> dict:
     secids = [s for s, _ in EM_ANCHORS.values()]
-    with httpx.Client(timeout=HTTP_TIMEOUT, headers={"User-Agent": UA}) as cli:
-        r = cli.get("https://push2.eastmoney.com/api/qt/stock/get",
+    data = http_get("https://push2.eastmoney.com/api/qt/stock/get",
                     params={"secid": ",".join(secids),
-                            "fields": "f43,f60,f57,f58,f169,f170"})
-        data = r.json()
+                            "fields": "f43,f60,f57,f58,f169,f170"},
+                    timeout=HTTP_TIMEOUT, headers={"User-Agent": UA}).json()
     diff = (data.get("data") or {}).get("diff") or []
     out = {}
     for it in diff:
