@@ -86,7 +86,9 @@ def task_collect(store: Store, force: bool = False) -> bool:
         _log("collect: 今日尚未开盘（非交易日或盘前），跳过")
         return False
     t0 = time.time()
-    rows = fetch_lof_quotes(None)
+    # 传 store 已知代码清单：东财 clist 在云端机房 IP 被限流（稳定 502）时，
+    # 自动降级到腾讯源（qt.gtimg.cn 批量，实测 60 只/批稳定）
+    rows = fetch_lof_quotes(store.known_codes())
     if not rows or len(rows) < 100:
         raise RuntimeError(f"quotes incomplete: {len(rows) if rows else 0}")
     funds = store.load_state()["funds"]
