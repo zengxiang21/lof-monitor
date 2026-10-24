@@ -20,9 +20,8 @@ import logging
 import re
 import time
 
-import httpx
-
 from .config import UA
+from .http import get as http_get
 
 log = logging.getLogger("lof.shares")
 
@@ -61,38 +60,38 @@ def fetch_szse_shares() -> dict[str, float]:
     PAGENO 翻页；dqgm 单位为万份，×1e4 归一为"份"（与 SSE 口径一致）。
     """
     out: dict[str, float] = {}
-    with httpx.Client(timeout=45, headers=_SZSE_HEADERS) as cli:
-        page, pages = 1, 1
-        while page <= pages:
-            params = {
-                "SHOWTYPE": "JSON", "CATALOGID": "1000_lf", "TABKEY": "tab1",
-                "selectJjlb": "LOF", "PAGENO": page,
-                "random": str(time.time() % 1),
-            }
-            r = cli.get(_SZSE_URL, params=params)
-            r.raise_for_status()
-            payload = r.json()
-            if not payload or not isinstance(payload[0], dict) \
-                    or not isinstance(payload[0].get("data"), list):
-                raise ValueError(f"szse json bad payload: {r.text[:80]}")
-            md = payload[0].get("metadata") or {}
-            try:
-                pages = int(md.get("pagecount") or 1)
-            except (TypeError, ValueError):
-                pages = 1
-            for row in payload[0]["data"]:
-                # 双保险：类别过滤 + 行内类别校验
-                if str(row.get("jjlb") or "").upper() != "LOF":
-                    continue
-                m = re.search(r"code=(\d{6})", str(row.get("sys_key") or ""))
-                g = re.search(r">\s*([\d,]+(?:\.\d+)?)\s*</a>",
-                              str(row.get("dqgm") or ""))
-                if not m or not g:
-                    continue
-                shares = _to_float(g.group(1))
-                if shares and shares > 0:
-                    out[m.group(1)] = shares * 1e4
-            page += 1
+    page, pages = 1, 1
+    while page <= pages:
+        params = {
+            "SHOWTYPE": "JSON", "CATALOGID": "1000_lf", "TABKEY": "tab1",
+            "selectJjlb": "LOF", "PAGENO": page,
+            "random": str(time.time() % 1),
+        }
+        r = http_get(_SZSE_URL, params=params, timeout=45,
+                     headers=_SZSE_HEADERS)
+        r.raise_for_status()
+        payload = r.json()
+        if not payload or not isinstance(payload[0], dict) \
+                or not isinstance(payload[0].get("data"), list):
+            raise ValueError(f"szse json bad payload: {r.text[:80]}")
+        md = payload[0].get("metadata") or {}
+        try:
+            pages = int(md.get("pagecount") or 1)
+        except (TypeError, ValueError):
+            pages = 1
+        for row in payload[0]["data"]:
+            # 双保险：类别过滤 + 行内类别校验
+            if str(row.get("jjlb") or "").upper() != "LOF":
+                continue
+            m = re.search(r"code=(\d{6})", str(row.get("sys_key") or ""))
+            g = re.search(r">\s*([\d,]+(?:\.\d+)?)\s*</a>",
+                          str(row.get("dqgm") or ""))
+            if not m or not g:
+                continue
+            shares = _to_float(g.group(1))
+            if shares and shares > 0:
+                out[m.group(1)] = shares * 1e4
+        page += 1
     if not out:
         raise ValueError("szse json empty")
     return out
@@ -138,10 +137,10 @@ def fetch_sse_shares(trade_date: str = "") -> tuple[str, dict[str, float]]:
         "pageHelp.pageSize": 500, "pageHelp.pageNo": 1,
         "pageHelp.beginPage": 1, "pageHelp.cacheSize": 1,
     }
-    with httpx.Client(timeout=30, headers=_SSE_LGM_HEADERS) as cli:
-        r = cli.get(_SSE_LGM_URL, params=params)
-        r.raise_for_status()
-        return _parse_sse_lofgm(r.text)
+    r = http_get(_SSE_LGM_URL, params=params, timeout=30,
+                 headers=_SSE_LGM_HEADERS)
+    r.raise_for_status()
+    return _parse_sse_lofgm(r.text)
 
 
 def fetch_em_share(code: str) -> tuple[str, float] | None:
@@ -151,9 +150,9 @@ def fetch_em_share(code: str) -> tuple[str, float] | None:
     故解析做成"结构无关"：找到响应里第一个对象数组，再挑日期+份额字段。
     """
     try:
-        with httpx.Client(timeout=20, headers=_EM_HEADERS) as cli:
-            r = cli.get(_EM_JJGM_URL,
-                        params={"type": "jjgm", "code": code, "page": 1, "per": 5})
+        r = http_get(_EM_JJGM_URL,
+                     params={"type": "jjgm", "code": code, "page": 1, "per": 5},
+                     timeout=20, headers=_EM_HEADERS)
         txt = r.text.strip()
         m = re.search(r"=\s*(\{.*\})\s*;?\s*$", txt, re.S)
         if not m:
