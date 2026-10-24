@@ -1,16 +1,15 @@
 """app.quotes — LOF 场内实时行情采集
 
 主源：AKShare `fund_lof_spot_em`（东方财富全市场 LOF 实时行情）
-兜底：东方财富 push2 clist 接口（httpx 直连，不依赖 akshare）
+兜底：东方财富 push2 clist 接口（app.http 统一客户端，不依赖 akshare）
 输出统一字段：code / name / price / change_pct / amount(元) / ts
 """
 from __future__ import annotations
 import logging
 import time
 
-import httpx
-
 from .config import UA, HTTP_TIMEOUT
+from .http import get as http_get
 
 log = logging.getLogger("lof.quotes")
 
@@ -58,9 +57,9 @@ def _norm_eastmoney() -> list[dict]:
     params = {"pn": 1, "pz": 1000, "po": 1, "np": 1, "fltt": 2, "invt": 2,
               "fid": "f3", "fs": _EM_LOS_FS,
               "fields": "f12,f14,f2,f3,f5,f6"}
-    with httpx.Client(timeout=HTTP_TIMEOUT,
-                      headers={"User-Agent": UA, "Referer": "https://quote.eastmoney.com/"}) as cli:
-        data = cli.get(url, params=params).json()
+    r = http_get(url, params=params, timeout=HTTP_TIMEOUT,
+                 headers={"User-Agent": UA, "Referer": "https://quote.eastmoney.com/"})
+    data = r.json()
     items = (data.get("data") or {}).get("diff") or []
     ts = int(time.time())
     out = []
@@ -102,16 +101,17 @@ def _norm_tencent(codes: list[str]) -> list[dict]:
             continue
     ts = int(time.time())
     out: list[dict] = []
-    with httpx.Client(timeout=HTTP_TIMEOUT,
-                      headers={"User-Agent": UA, "Referer": "https://gu.qq.com/"}) as cli:
-        for i in range(0, len(secids), 100):
-            batch = secids[i:i + 100]
-            try:
-                text = cli.get("https://qt.gtimg.cn/q=" + ",".join(batch)).text
-            except Exception as e:  # noqa: BLE001
-                log.warning("tencent batch %d failed: %s", i // 100, e)
-                continue
-            out.extend(_parse_tencent(text, ts))
+    for i in range(0, len(secids), 60):
+        batch = secids[i:i + 60]
+        try:
+            text = http_get("https://qt.gtimg.cn/q=" + ",".join(batch),
+                            timeout=HTTP_TIMEOUT, encoding="gbk",
+                            headers={"User-Agent": UA,
+                                     "Referer": "https://gu.qq.com/"}).text
+        except Exception as e:  # noqa: BLE001
+            log.warning("tencent batch %d failed: %s", i // 60, e)
+            continue
+        out.extend(_parse_tencent(text, ts))
     return out
 
 
