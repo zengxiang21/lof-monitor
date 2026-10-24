@@ -1,0 +1,33 @@
+name: 部署 GitHub Pages
+
+# 只做"发布"：把 web/（页面 + 本机导出的 JSON 数据）部署到 Pages。
+# 数据采集在本机（中国 IP）进行——GitHub Actions 在境外，连不上东财/
+# 交易所，所以这里没有任何抓取步骤；数据经 scripts/sync_pages.sh 推送上来。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v4
