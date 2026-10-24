@@ -407,32 +407,36 @@ def evaluate_rules(db, only: str | list[str] | None = None) -> list[dict]:
 
     # —— 溢价关注（突破 ±关注线，冷却期内不重复） ——
     if want("premium_watch"):
-        th = float(rules["premium_watch"].get("threshold", 2.0))
-        cooldown = int(rules["premium_watch"].get("cooldown_min", 60)) * 60
-        state = _load_state()
-        now = time.time()
-        for r in db.latest_quotes():
-            prem = r.get("est_premium")
-            if prem is None:
-                prem = r.get("premium")
-            if prem is None or abs(prem) < th:
-                continue
-            key = f"premium_watch:{r['code']}"
-            last = state.get(key) or {}
-            # 同侧突破且冷却期内 → 跳过；跨侧（溢↔折）或冷却过期 → 告警
-            if last.get("side") == ("up" if prem > 0 else "down") \
-                    and now - last.get("ts", 0) < cooldown:
-                continue
-            side = "溢价" if prem > 0 else "折价"
-            alerts.append({
-                "rule": "premium_watch", "code": r["code"], "name": r.get("name", ""),
-                "key": key, "value": round(prem, 4),
-                "title": f"{side}关注",
-                "text": (f"**{side}突破关注线** {r['code']} {r.get('name', '')}\n"
-                         f"> 估算溢价 <font color=\"{_color(prem)}\">{_pct(prem)}</font>"
-                         f"（关注线 ±{th:.1f}%）\n"
-                         f"> 现价 {r.get('price')} · T-1溢价 {_pct(r.get('premium'))}"),
-            })
+        # 溢价关注只在交易时段有意义：非交易时段商品 LOF 的锚点估值
+        # 会跳动，造成溢↔折跨侧翻转的噪音告警（用户此时也无法交易）
+        from .calendar import is_market_open
+        if is_market_open(_cn_now()):
+            th = float(rules["premium_watch"].get("threshold", 2.0))
+            cooldown = int(rules["premium_watch"].get("cooldown_min", 60)) * 60
+            state = _load_state()
+            now = time.time()
+            for r in db.latest_quotes():
+                prem = r.get("est_premium")
+                if prem is None:
+                    prem = r.get("premium")
+                if prem is None or abs(prem) < th:
+                    continue
+                key = f"premium_watch:{r['code']}"
+                last = state.get(key) or {}
+                # 同侧突破且冷却期内 → 跳过；跨侧（溢↔折）或冷却过期 → 告警
+                if last.get("side") == ("up" if prem > 0 else "down") \
+                        and now - last.get("ts", 0) < cooldown:
+                    continue
+                side = "溢价" if prem > 0 else "折价"
+                alerts.append({
+                    "rule": "premium_watch", "code": r["code"], "name": r.get("name", ""),
+                    "key": key, "value": round(prem, 4),
+                    "title": f"{side}关注",
+                    "text": (f"**{side}突破关注线** {r['code']} {r.get('name', '')}\n"
+                             f"> 估算溢价 <font color=\"{_color(prem)}\">{_pct(prem)}</font>"
+                             f"（关注线 ±{th:.1f}%）\n"
+                             f"> 现价 {r.get('price')} · T-1溢价 {_pct(r.get('premium'))}"),
+                })
 
     # —— 每日精选（系统级，每交易日一次，14:45 收盘前推送） ——
     if want("daily_pick"):
