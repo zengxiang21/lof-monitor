@@ -7,12 +7,12 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: 探测各数据源可达性（跟随重定向）
+      - name: 探测深交所主域份额接口
         run: |
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
           probe() {
             local name="$1" url="$2" referer="$3"
-            local code size snippet eff
+            local code size snippet
             if [ -n "$referer" ]; then
               code=$(curl -sL -o /tmp/body -w "%{http_code}" --max-time 25 \
                 -H "User-Agent: $UA" -H "Referer: $referer" "$url" || echo "CURL_ERR")
@@ -21,18 +21,13 @@ jobs:
                 -H "User-Agent: $UA" "$url" || echo "CURL_ERR")
             fi
             size=$(wc -c < /tmp/body 2>/dev/null || echo 0)
-            snippet=$(head -c 200 /tmp/body 2>/dev/null | tr '\n' ' ' | tr -d '\r')
+            snippet=$(head -c 250 /tmp/body 2>/dev/null | tr '\n' ' ' | tr -d '\r')
             echo "== $name => HTTP $code, ${size}B"
             echo "   body: $snippet"
             return 0
           }
-          probe "东财行情clist(主)" "https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=3&po=1&np=1&fltt=2&invt=2&fid=f3&fs=b:MK0021,b:MK0022,b:MK0023,b:MK0024&fields=f12,f14,f2,f3,f5,f6" "https://quote.eastmoney.com/"
-          probe "东财单只stock" "https://push2.eastmoney.com/api/qt/stock/get?secid=0.161725&fields=f43,f44,f45,f46,f47,f48,f57,f58,f169,f170" "https://quote.eastmoney.com/"
-          probe "东财净值lsjz" "https://api.fund.eastmoney.com/f10/lsjz?fundCode=161725&pageIndex=1&pageSize=3" "https://fundf10.eastmoney.com/"
-          probe "东财基金页(限额)" "https://fund.eastmoney.com/161725.html" ""
-          probe "深交所份额xlsx" "https://fund.szse.cn/api/report/ShowReport?SHOWTYPE=xlsx&CATALOGID=1000_lf&TABKEY=tab1" "https://fund.szse.cn/marketdata/fundslist/index.html"
-          probe "上交所份额" "https://query.sse.com.cn/commonQuery.do?sqlId=COMMON_SSE_SJ_JJSJ_JJGM_LOFGMTJ_L&isPagination=true" "https://www.sse.com.cn/market/funddata/volumn/lofvolumn/"
-          probe "腾讯行情LOF" "https://qt.gtimg.cn/q=sz161725" ""
-          probe "腾讯行情SH" "https://qt.gtimg.cn/q=sh501018" ""
-          probe "新浪行情" "https://hq.sinajs.cn/list=sz161725" "https://finance.sina.com.cn"
+          probe "深交所主域-基金列表(含份额)" "https://www.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1105&TABKEY=tab1&tab1PAGENO=1" "https://www.szse.cn/market/fund/list/index.html"
+          probe "深交所子域-xlsx(旧源)" "https://fund.szse.cn/api/report/ShowReport?SHOWTYPE=xlsx&CATALOGID=1000_lf&TABKEY=tab1" "https://fund.szse.cn/marketdata/fundslist/index.html"
+          probe "东财行情clist" "https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=3&po=1&np=1&fltt=2&invt=2&fid=f3&fs=b:MK0021,b:MK0022,b:MK0023,b:MK0024&fields=f12,f14,f2,f3,f5,f6" "https://quote.eastmoney.com/"
+          probe "东财估值GetFundGZList" "https://api.fund.eastmoney.com/FundGuZhi/GetFundGZList?type=8&sort=3&orderType=desc&canbuy=0&pageIndex=1&pageSize=3&_=1" "https://fund.eastmoney.com/"
           echo "ALL_PROBES_DONE"
