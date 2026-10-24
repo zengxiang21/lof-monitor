@@ -122,6 +122,24 @@ def main() -> dict:
     (OUT_DIR / "calibration.json").write_text(
         json.dumps(calibration, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
+    # 多日历史回看数据（区间降采样 + 统计；GitHub Pages 静态模式数据源）
+    # 每只基金 7 天（小时级）/ 30 天（天级）/ 90 天（天级），数据不足时按实际裁剪
+    ranges: dict[str, dict] = {}
+    for r in rows:
+        code = r["code"]
+        ranges[code] = {}
+        for d in (7, 30, 90):
+            rg = db.quote_history_range(code, d, max_pts=200)
+            if rg["points"]:
+                ranges[code][str(d)] = {
+                    "points": [[p["ts"], p["price"], p["premium"], p["est_premium"]]
+                               for p in rg["points"]],
+                    "stats": rg["stats"], "data_days": rg["data_days"],
+                }
+    (OUT_DIR / "history_ranges.json").write_text(
+        json.dumps({"updated_ts": db.latest_ts(), "ranges": ranges},
+                   ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
     # 清理超过 HIST_DAYS 天的旧历史文件（如按天切分，保留位）
     cutoff = time.time() - HIST_DAYS * 86400
     for old in OUT_DIR.glob("hist-*.json"):
