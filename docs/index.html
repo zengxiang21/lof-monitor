@@ -240,7 +240,7 @@ function sparkSVG(code){
 
 function metaText(){
   const suffix = state.notice ||
-    (state.mode === "static" ? "静态模式（Actions 每 5 分钟更新）" : "每 60 秒自动刷新");
+    (state.mode === "static" ? "静态模式（每小时自动同步）" : "每 60 秒自动刷新");
   return `数据时间：${fmtTs(state.updatedTs)} · 共 ${state.rows.length} 只 · ${suffix}`;
 }
 
