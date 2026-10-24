@@ -4,7 +4,7 @@
  *  - /api 读接口 + /data 静态 JSON：network-first，失败时回退缓存（弱网/离线也能看到上次数据）
  *  - POST /api/collect：强制走网络，不缓存
  */
-const VERSION = "v11";
+const VERSION = "v12";
 const SHELL = [
   "/",
   "/index.html",
@@ -43,8 +43,10 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(
       fetch(req)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(API_CACHE()).then((c) => c.put(req, copy));
+          if (res && res.ok) {  // 只缓存成功响应，避免把 404/502 页写进缓存
+            const copy = res.clone();
+            caches.open(API_CACHE()).then((c) => c.put(req, copy));
+          }
           return res;
         })
         .catch(async () => {
@@ -63,8 +65,10 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(
       fetch(req)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(API_CACHE()).then((c) => c.put(req, copy));
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(API_CACHE()).then((c) => c.put(req, copy));
+          }
           return res;
         })
         .catch(async () => {
