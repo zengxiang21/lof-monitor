@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f8f9fb">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23185FA5'/%3E%3Cpath d='M7 21l5-6 4 3 6-8' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="LOF套利监控">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<title>LOF 套利实时监控</title>
+<style>
+  :root{
+    --bg:#f8f9fb; --card:#ffffff; --line:#e8eaf0; --text:#1a1d26;
+    --sub:#6b7280; --up:#e0453a; --down:#1a9e54; --accent:#185FA5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);
+       font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px}
+  .wrap{max-width:1140px;margin:0 auto;padding:12px}
+  header{display:flex;align-items:center;justify-content:space-between;
+         padding:10px 4px 12px}
+  h1{font-size:17px;font-weight:600}
+  .meta{font-size:12px;color:var(--sub);margin-top:2px}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;
+       padding:7px 14px;font-size:13px;cursor:pointer}
+  .btn:active{opacity:.85}
+  .tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 10px;-webkit-overflow-scrolling:touch}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;background:var(--card);border:1px solid var(--line);border-radius:999px;
+       padding:6px 12px;font-size:13px;color:var(--sub);cursor:pointer;white-space:nowrap}
+  .tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative}
+  .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;min-width:520px}
+  th{font-size:12px;color:var(--sub);font-weight:500;padding:10px 8px;text-align:right;
+     border-bottom:1px solid var(--line);white-space:nowrap;touch-action:manipulation}
+  thead th[data-key]{cursor:pointer;-webkit-user-select:none;user-select:none}
+  thead th[data-key]:active{color:var(--accent)}
+  th.asc::after{content:" ▲";font-size:9px;color:var(--accent)}
+  th.desc::after{content:" ▼";font-size:9px;color:var(--accent)}
+  th:nth-child(2),td:nth-child(2){text-align:left;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+  td{padding:10px 8px;font-size:13px;text-align:right;border-bottom:1px solid var(--line);
+     white-space:nowrap}
+  tbody tr{cursor:pointer}
+  tbody tr:active{background:#f3f6fb}
+  .up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--sub)}
+  .tag{display:inline-block;font-size:11px;border-radius:4px;padding:1px 6px;margin-left:6px}
+  .tag.prem{background:#fdeceb;color:var(--up)}
+  .tag.disc{background:#e8f6ee;color:var(--down)}
+  .src{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin-left:4px;
+       background:#eef2f7;color:var(--sub);vertical-align:1px}
+  .src.a{background:#eaf3de;color:#3B6D11}
+  .sgzt{font-size:11px;color:var(--sub)}
+  .navtag{display:inline-block;font-size:10px;border-radius:4px;padding:0 4px;margin-left:4px;vertical-align:1px}
+  .navtag.lag{background:#fff1e0;color:#B25E09}
+  .navtag.dead{background:#eceef1;color:#9aa0a6}
+  .legend{font-size:11px;color:var(--sub);line-height:1.7;padding:10px 4px 2px}
+  .spk{width:52px}
+  .spk svg{display:block;margin-left:auto}
+  .sh{white-space:nowrap}
+  .detail{padding:12px;background:#fbfcfe}
+  .detail h3{font-size:13px;margin-bottom:8px;color:var(--sub);font-weight:500}
+  .estline{font-size:12px;color:var(--sub);margin-bottom:8px;line-height:1.7}
+  .estline b{color:var(--text);font-weight:500}
+  .hist{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+  .hist table th,.hist table td{font-size:12px;padding:6px}
+  /* 多日历史回看 */
+  .rtabs{display:flex;gap:6px;margin:10px 0 8px;flex-wrap:wrap}
+  .rtabs button{font-size:12px;padding:4px 12px;border:1px solid var(--line);border-radius:20px;background:#fff;color:var(--sub);cursor:pointer}
+  .rtabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .rchart{border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 6px 4px}
+  .rchart svg{display:block;width:100%;height:auto}
+  .rstat{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--sub);margin:8px 0 10px}
+  .rstat b{color:var(--text);font-weight:500}
+  .rstat .up{color:var(--up)} .rstat .down{color:var(--down)}
+  .empty{padding:40px;text-align:center;color:var(--sub);font-size:13px}
+  @media (max-width:560px){
+    .opt{display:none}          /* 手机端精简：成交额、T-1净值、份额Δ */
+    th:nth-child(2),td:nth-child(2){max-width:104px;overflow:hidden;text-overflow:ellipsis}
+    th,td{padding:10px 6px}
+    .spk{width:44px}
+  }
+  .swipe{display:none;font-size:11px;color:var(--sub);text-align:center;padding:6px 0 2px}
+  @media (max-width:560px){ .swipe{display:block} }
+  @media (min-width:720px){
+    .wrap{padding:20px}
+    th,td{padding:12px 9px;font-size:14px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>LOF 基金套利实时监控</h1>
+      <div class="meta" id="meta">加载中…</div>
+    </div>
+    <button class="btn" id="refreshBtn">手动刷新</button>
+    <button class="btn" id="sharesBtn" title="从深交所/上交所刷新全市场场内份额">刷新份额</button>
+    <a class="btn" href="calibration.html" style="background:#fff;color:var(--accent);border:1px solid var(--accent);text-decoration:none" title="估算误差回测与 β 校准面板">误差回测</a>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="card">
+    <div class="swipe" id="swipe">← 左右滑动查看全部列 →</div>
+    <div class="tblwrap">
+    <table>
+      <thead><tr>
+        <th data-key="code">代码</th><th data-key="name">名称</th><th data-key="price">现价</th><th data-key="change_pct">涨跌幅</th>
+        <th class="opt" data-key="amount">成交额</th><th class="opt" data-key="nav">T-1净值</th><th data-key="premium">T-1溢价</th>
+        <th data-key="est_premium">估算溢价<span class="src">P1</span></th><th class="spk">走势</th>
+        <th class="opt" data-key="share_chg_pct">份额Δ</th><th data-key="sgzt">申购状态</th>
+        <th class="opt" data-key="max_amt">日限额</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    </div>
+    <div class="empty" id="empty" hidden>暂无数据，点击右上角手动刷新</div>
+    <div class="legend">T-1净值=最近一个已公布净值（全市场最新为 <b id="navLatestDate">—</b>）；
+      跨境/QDII 基金净值通常滞后 1–2 天（源站未公布即沿用上一净值）；
+      <span class="navtag lag">滞后N天</span>=源站仍有更新空间，<span class="navtag dead">停更</span>=长期未披露（已清盘/停止运作）。
+      份额Δ=场内份额较上一交易日变动（收盘后更新）：<b>份额激增=套利资金正在涌入，比溢价率更领先</b>（深市深交所、沪市上交所）。
+      日限额=单日累计购买上限（天天基金交易页，每日 9:10/15:10 刷新；<b>不限</b>=无上限）。<b>限额突涨/突降往往是套利窗口开关</b>，异动见 /api/limits/changes。
+      估算净值已按 <b>β 校准</b>（每日 22:45 用官方净值回归校准系数，样本≥5 天启用个体 β，否则组级兜底；展开行可见 β 与近期误差）。
+      <b>点击表头可按该列排序，再点一次切换升/降序</b>（自动记住上次选择）。</div>
+  </div>
+</div>
+
+<script>
+const CATS = ["全部","原油","有色","海外","港股","科技","A股"];
+let state = { cat:"全部", sort:"premium", sortKey:"premium", sortDir:"desc",
+              rows:[], counts:{}, updatedTs:0, open:null,
+              mode:"api", hist:{}, histTs:0, notice:null, ranges:null };
+
+const fmtPct = v => v==null ? "—" : (v>0?"+":"") + v.toFixed(2) + "%";
+const fmtAmt = v => v==null ? "—" : (v>=1e8 ? (v/1e8).toFixed(2)+"亿" : (v/1e4).toFixed(0)+"万");
+const fmtShares = v => v==null ? "—" : (v>=1e8 ? (v/1e8).toFixed(2)+"亿" : v>=1e4 ? (v/1e4).toFixed(1)+"万" : v.toFixed(0));
+const fmtLimit = v => v==null ? "不限" : (v>=1e4 ? (v/1e4).toFixed(2).replace(/\.?0+$/,"")+"万元" : v.toFixed(0)+"元");
+const cls = v => v==null ? "flat" : (v>0 ? "up" : v<0 ? "down" : "flat");
+const fmtTs = ts => ts ? new Date(ts*1000).toLocaleString("zh-CN",{hour12:false}) : "—";
+
+// —— 表头点击排序：列定义（t=类型 n 数字/s 文本，d=该列默认方向）——
+const SORT_COLS = {
+  code:{t:"s",d:"asc"}, name:{t:"s",d:"asc"}, price:{t:"n",d:"desc"},
+  change_pct:{t:"n",d:"desc"}, amount:{t:"n",d:"desc"}, nav:{t:"n",d:"desc"},
+  premium:{t:"n",d:"desc"}, est_premium:{t:"n",d:"desc"},
+  share_chg_pct:{t:"n",d:"desc"}, sgzt:{t:"s",d:"asc"},
+  max_amt:{t:"n",d:"asc"},
+};
+function sortRows(rows){
+  const k = state.sortKey, c = SORT_COLS[k];
+  if (!c) return rows;
+  const dir = state.sortDir === "asc" ? 1 : -1;
+  return rows.slice().sort((a,b)=>{
+    const va = a[k], vb = b[k];
+    const na = va==null, nb = vb==null;
+    if (na && nb) return 0;
+    if (na) return 1;            // 空值恒排尾
+    if (nb) return -1;
+    if (c.t === "n") return (va - vb) * dir;
+    return String(va).localeCompare(String(vb), "zh") * dir;
+  });
+}
+function paintSortHeads(){
+  document.querySelectorAll("thead th[data-key]").forEach(th=>{
+    th.classList.toggle("asc",  th.dataset.key === state.sortKey && state.sortDir === "asc");
+    th.classList.toggle("desc", th.dataset.key === state.sortKey && state.sortDir === "desc");
+  });
+}
+function bindSortHeads(){
+  document.querySelectorAll("thead th[data-key]").forEach(th=>{
+    th.addEventListener("click", ()=>{
+      const k = th.dataset.key;
+      if (state.sortKey === k){
+        state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+      }else{
+        state.sortKey = k;
+        state.sortDir = SORT_COLS[k].d;
+      }
+      try{ localStorage.setItem("lof-sort", JSON.stringify({key:state.sortKey, dir:state.sortDir})); }catch(e){}
+      paintSortHeads();
+      renderTable();
+    });
+  });
+  try{
+    const s = JSON.parse(localStorage.getItem("lof-sort") || "null");
+    if (s && SORT_COLS[s.key] && (s.dir === "asc" || s.dir === "desc")){
+      state.sortKey = s.key; state.sortDir = s.dir;
+    }
+  }catch(e){}
+  paintSortHeads();
+}
+
+// 带超时 + 状态校验 + 失败自动重试一次的 JSON 请求，避免冷启动/网关空响应导致解析报错
+async function getJSON(url, opts = {}, timeoutMs = 15000){
+  for (let attempt = 0; attempt < 2; attempt++){
+    try{
+      const ctrl = new AbortController();
+      const timer = setTimeout(()=>ctrl.abort(), timeoutMs);
+      const r = await fetch(url, {...opts, signal: ctrl.signal});
+      clearTimeout(timer);
+      if (!r.ok){
+        // 网关错误页（HTML）通常是"链接已过期/沙箱已回收"，比裸 HTTP 码更有用
+        let msg = `HTTP ${r.status}`;
+        try{
+          const t = await r.text();
+          if (/<html[\s>]/i.test(t)){
+            msg = `服务网关返回 ${r.status}（链接可能已过期）`;
+          } else {
+            const j = JSON.parse(t);
+            if (j && j.detail) msg = `HTTP ${r.status}：${JSON.stringify(j.detail).slice(0,80)}`;
+          }
+        }catch(e2){}
+        throw new Error(msg);
+      }
+      const text = await r.text();
+      try { return JSON.parse(text); }
+      catch { throw new Error("响应格式异常"); }
+    }catch(e){
+      if (attempt === 0){ await new Promise(res=>setTimeout(res, 1200)); continue; }
+      throw new Error(e.name === "AbortError" ? "请求超时" : (e.message || "网络错误"));
+    }
+  }
+}
+
+// 溢价走势迷你图（静态模式从 history.json 取数）
+function sparkSVG(code){
+  const pts = state.hist[code];
+  if (!pts || pts.length < 2) return '<span class="sgzt">—</span>';
+  const vals = pts.map(p=>p[1]);
+  const has = vals.filter(v=>v!=null);
+  if (has.length < 2) return '<span class="sgzt">—</span>';
+  const min = Math.min(...has), max = Math.max(...has), span = (max-min) || 1;
+  const W=52, H=16, n = vals.length;
+  const str = vals.map((v,i)=>{
+    if (v==null) return "";
+    const x = (i/(n-1)*W).toFixed(1);
+    const y = (H - (v-min)/span*(H-2) - 1).toFixed(1);
+    return x+","+y;
+  }).filter(Boolean).join(" ");
+  const up = has[has.length-1] >= has[0];
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <polyline points="${str}" fill="none" stroke="${up?'var(--up)':'var(--down)'}" stroke-width="1.3"/></svg>`;
+}
+
+function metaText(){
+  const suffix = state.notice ||
+    (state.mode === "static" ? "静态模式（每小时自动同步）" : "每 60 秒自动刷新");
+  return `数据时间：${fmtTs(state.updatedTs)} · 共 ${state.rows.length} 只 · ${suffix}`;
+}
+
+// 模式探测：API 与静态数据并行探测，API 优先、静态兜底（GitHub Pages 无 API）
+// （并行而非串行：CDN 首次分发可能慢，串行探测易让降级超时静默失败）
+async function detectMode(){
+  const [apiR, staticR] = await Promise.allSettled([
+    getJSON("api/summary", {}, 8000),
+    getJSON("data/snapshot.json", {}, 20000)
+  ]);
+  if (apiR.status === "fulfilled" && apiR.value && typeof apiR.value.total === "number"){
+    state.mode = "api";
+  } else if (staticR.status === "fulfilled" && staticR.value && staticR.value.items){
+    state.mode = "static";
+    const b = document.getElementById("refreshBtn");
+    b.textContent = "重新载入";
+    try{
+      const h = await getJSON("data/history.json", {}, 30000);
+      state.hist = h.series || {}; state.histTs = Date.now()/1000;
+    }catch(e){}
+  }
+  // 两者皆败：保持初值，由 load() 统一报错（附自救指引）
+}
+
+async function load(){
+  const meta = document.getElementById("meta");
+  state.notice = null;
+  try{
+    if (state.mode === "static"){
+      const s = await getJSON(`data/snapshot.json?t=${Date.now()}`, {}, 15000);
+      state.rows = s.items || []; state.counts = s.counts || {}; state.updatedTs = s.updated_ts || 0;
+      renderTabs(); renderTable();
+      if (!state.histTs || Date.now()/1000 - state.histTs > 240){
+        try{
+          const h = await getJSON(`data/history.json?t=${Date.now()}`, {}, 20000);
+          state.hist = h.series || {}; state.histTs = Date.now()/1000;
+        }catch(e){}
+      }
+      return;
+    }
+    const [list, sum] = await Promise.all([
+      getJSON("api/lof/list?sort=" + state.sort),
+      getJSON("api/summary")
+    ]);
+    state.rows = list.items; state.counts = sum.counts; state.updatedTs = sum.updated_ts;
+    renderTabs(); renderTable();
+    // 自愈补采：交易时段数据滞后 >2.5 分钟 → 自动触发一次采集（节流 3 分钟）
+    maybeAutoCollect();
+    // 迷你图数据：每 4 分钟拉一次全市场序列
+    if (!state.histTs || Date.now()/1000 - state.histTs > 240){
+      try{
+        const h = await getJSON("api/history?pts=90", {}, 20000);
+        state.hist = h.series || {}; state.histTs = Date.now()/1000;
+        renderTable();
+      }catch(e){}
+    }
+  }catch(e){
+    let msg = "接口异常：" + e.message + "（60 秒后自动重试，当前显示上一次数据）";
+    if (/网关|链接可能已过期/.test(e.message || "")){
+      msg += "；最新地址请在「设置—数据管理—应用」中查看，或联系管理员";
+    }
+    meta.textContent = msg;
+    renderTabs();  // 不重绘表格，保留上一次数据与错误提示
+  }
+}
+
+function renderTabs(){
+  const el = document.getElementById("tabs");
+  el.innerHTML = "";
+  CATS.forEach(c=>{
+    const n = c==="全部" ? state.rows.length : (state.counts[c]||0);
+    const b = document.createElement("button");
+    b.className = "tab" + (state.cat===c ? " on" : "");
+    b.textContent = `${c}(${n})`;
+    b.onclick = ()=>{ state.cat = c; state.open = null; renderTable(); };
+    el.appendChild(b);
+  });
+}
+
+function renderTable(){
+  document.getElementById("meta").textContent = metaText();
+  // 全市场最新已公布净值日期（字符串比较即可，YYYY-MM-DD 格式有序）
+  const latestNav = state.rows.map(r=>r.nav_date).filter(Boolean).sort().pop() || null;
+  document.getElementById("navLatestDate").textContent = latestNav || "—";
+  const navTag = d => {
+    if (!d || !latestNav || d >= latestNav) return "";
+    const lag = Math.round((new Date(latestNav) - new Date(d)) / 86400000);
+    if (lag > 60) return `<span class="navtag dead">停更</span>`;
+    return `<span class="navtag lag">滞后${lag}天</span>`;
+  };
+  const tb = document.getElementById("tbody");
+  let rows = state.cat==="全部" ? state.rows : state.rows.filter(r=>r.category===state.cat);
+  rows = sortRows(rows);
+  document.getElementById("empty").hidden = rows.length > 0;
+  tb.innerHTML = "";
+  rows.forEach(r=>{
+    const tr = document.createElement("tr");
+    const srcTag = r.est_source === 'official' ? '<span class="src a">官方</span>'
+                 : r.est_source === 'anchor'   ? '<span class="src">锚点</span>' : '';
+    tr.innerHTML = `
+      <td>${r.code}</td><td>${r.name||""}</td>
+      <td class="${cls(r.change_pct)}">${r.price ?? "—"}</td>
+      <td class="${cls(r.change_pct)}">${fmtPct(r.change_pct)}</td>
+      <td class="opt">${fmtAmt(r.amount)}</td>
+      <td class="opt">${r.nav ?? "—"}${r.nav_date ? `<span class="sgzt"> ${r.nav_date.slice(5)}</span>`:""}${navTag(r.nav_date)}</td>
+      <td class="${cls(r.premium)}">${fmtPct(r.premium)}
+        ${r.tag==="premium"?'<span class="tag prem">溢价</span>':""}
+        ${r.tag==="discount"?'<span class="tag disc">折价</span>':""}</td>
+      <td class="${cls(r.est_premium)}">${r.est_nav ? fmtPct(r.est_premium)+srcTag : "—"}</td>
+      <td class="spk">${sparkSVG(r.code)}</td>
+      <td class="opt sh">${fmtShares(r.shares)}${r.share_chg_pct!=null && Math.abs(r.share_chg_pct)>=1 ? `<span class="${cls(r.share_chg_pct)}">${fmtPct(r.share_chg_pct)}</span>`:""}</td>
+      <td class="sgzt">${r.sgzt || "—"}${r.max_amt!=null && r.sgzt!=="开放申购" ? ` <span class="sgzt">${fmtLimit(r.max_amt)}</span>` : ""}</td>
+      <td class="opt sh">${fmtLimit(r.max_amt)}</td>`;
+    tr.onclick = ()=>toggleDetail(r.code, tr);
+    tb.appendChild(tr);
+    if(state.open === r.code) insertDetail(tr, r.code);
+  });
+}
+
+async function toggleDetail(code, tr){
+  state.open = state.open === code ? null : code;
+  renderTable();
+  if(!state.open) return;
+}
+
+async function insertDetail(tr, code){
+  let items, cal = {};
+  try{
+    if (state.mode === "api"){
+      const h = await getJSON(`api/lof/${code}/history?limit=60`);
+      items = h.items || [];
+      cal = h.calibration || {};
+    } else {
+      // 静态模式：history.json 紧凑序列 [ts, premium, est_premium] → item 格式
+      if (!state.histTs){
+        try{
+          const h = await getJSON(`data/history.json?t=${Date.now()}`, {}, 30000);
+          state.hist = h.series || {}; state.histTs = Date.now()/1000;
+        }catch(e){}
+      }
+      items = (state.hist[code] || []).slice(-60).map(p=>({
+        ts: p[0], premium: p[1], est_premium: p[2]
+      }));
+      // 用 snapshot 当前行丰富名称/估算/现价（末点）
+      const row = (state.rows || []).find(r=>r.code===code);
+      if (row){
+        if (items.length){
+          const last = items[items.length-1];
+          last.name = row.name; last.price = row.price; last.amount = row.amount;
+          last.est_nav = row.est_nav; last.est_nav_raw = row.est_nav_raw;
+          last.est_source = row.est_source;
+          if (row.est_premium != null) last.est_premium = row.est_premium;
+        }
+        cal.beta = row.beta;
+      }
+    }
+  }catch(e){
+    const tr2 = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 12; td.className = "detail";
+    td.innerHTML = `<div class="estline">历史数据加载失败：${e.message}</div>`;
+    tr2.appendChild(td); tr.after(tr2);
+    return;
+  }
+  try{
+    const cur = items[items.length-1] || {};
+    const srcName = cur.est_source==='official' ? '天天基金官方估值'
+                   : cur.est_source==='holdings' ? '前十大持仓穿透'
+                   : cur.est_source==='anchor' ? '外盘锚点推算' : '估算';
+    const betaTag = (cal.beta && Math.abs(cal.beta-1) > 0.0005)
+      ? `，β=<b>${cal.beta.toFixed(4)}</b> 校准（原始 ${cur.est_nav_raw != null ? (+cur.est_nav_raw).toFixed(4) : "—"}${cal.level ? `，${cal.level==='fund'?'个体':'组级'}${cal.n!=null?' n='+cal.n:''}` : ""}）` : "";
+    const errLine = (cal.recent && cal.recent.length)
+      ? `<div class="estline">估算误差回测（近 ${cal.recent.length} 日）：` +
+        cal.recent.map(r=>`<span class="${cls(r.err_pct)}">${r.err_pct>0?'+':''}${r.err_pct.toFixed(2)}%</span>`).join(" / ") +
+        ` <span class="sgzt">（正=估算偏高，β 自动回归修正）</span></div>` : "";
+    const estHtml = cur.est_nav
+      ? `<div class="estline">实时估算：净值 <b>${(+cur.est_nav).toFixed(4)}</b>（${srcName}${betaTag}），
+         估算溢价 <b class="${cls(cur.est_premium)}">${fmtPct(cur.est_premium)}</b>，
+         T-1 溢价 <b class="${cls(cur.premium)}">${fmtPct(cur.premium)}</b></div>${errLine}`
+      : `<div class="estline">实时估算：暂无（该基金无官方估值、未配置锚点、且无持仓明细，多为债券/货币型）</div>`;
+    const tr2 = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 12; td.className = "detail";
+    td.innerHTML = `<h3>${code} ${cur.name||""} · 历史快照（最近 ${items.length} 次，每分钟一次）</h3>${estHtml}` +
+      `<div class="rtabs" id="rt-${code}">` +
+        RANGES.map(d=>`<button data-d="${d}" class="${d===7?'on':''}">${d===1?'日内':d+'天'}</button>`).join("") +
+      `</div><div id="rc-${code}"><div class="estline">区间数据加载中…</div></div>` +
+      `<div class="hist"><table><thead><tr>
+        <th>时间</th><th>现价</th><th>估算净值</th><th>估算溢价</th><th>成交额</th>
+      </tr></thead><tbody>` +
+      items.slice().reverse().map(x=>`<tr>
+        <td>${new Date(x.ts*1000).toLocaleTimeString("zh-CN",{hour12:false})}</td>
+        <td>${x.price ?? "—"}</td><td>${x.est_nav ?? x.nav ?? "—"}</td>
+        <td class="${cls(x.est_premium)}">${fmtPct(x.est_premium)}</td>
+        <td>${fmtAmt(x.amount)}</td></tr>`).join("") +
+      `</tbody></table></div>`;
+    tr2.appendChild(td);
+    tr.after(tr2);
+    // 区间 tab 绑定 + 默认加载 7 天
+    const tabs = td.querySelector(`#rt-${code}`);
+    tabs.addEventListener("click", (ev)=>{
+      const btn = ev.target.closest("button");
+      if (!btn) return;
+      tabs.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===btn));
+      loadRange(code, +btn.dataset.d);
+    });
+    loadRange(code, 7);
+  }catch(e){ /* 忽略 */ }
+}
+
+// —— 多日历史回看（7/30/90 天）——
+const RANGES = [7, 30, 90];
+async function loadRange(code, days){
+  const box = document.getElementById(`rc-${code}`);
+  if (!box) return;
+  try{
+    let rg;
+    if (state.mode === "api"){
+      const h = await getJSON(`api/lof/${code}/history?days=${days}`, {}, 15000);
+      rg = h.range;
+    } else {
+      if (!state.ranges){
+        const r = await getJSON(`data/history_ranges.json?t=${Date.now()}`, {}, 30000);
+        state.ranges = r.ranges || {};
+      }
+      rg = (state.ranges[code] || {})[String(days)];
+    }
+    if (!rg || !rg.points || !rg.points.length){
+      box.innerHTML = `<div class="estline">该区间暂无数据（系统已累积 ${rg?.data_days ?? "?"} 天，继续累积后自动可见）</div>`;
+      return;
+    }
+    box.innerHTML = rangeChart(rg.points, rg.stats, days) + rangeStats(rg.stats, days);
+  }catch(e){
+    box.innerHTML = `<div class="estline">区间数据加载失败：${e.message}</div>`;
+  }
+}
+function rangeStats(s, days){
+  if (!s) return "";
+  const f = v => v==null ? "—" : (v>0?"+":"") + v.toFixed(2) + "%";
+  const amp = (s.prem_max!=null && s.prem_min!=null) ? (s.prem_max - s.prem_min) : null;
+  return `<div class="rstat">
+    <span>区间最高 <b class="up">${f(s.prem_max)}</b></span>
+    <span>区间最低 <b class="down">${f(s.prem_min)}</b></span>
+    <span>平均 <b>${f(s.prem_avg)}</b></span>
+    <span>振幅 <b>${amp!=null?amp.toFixed(2)+"%":"—"}</b></span>
+    <span>最新 <b class="${cls(s.prem_last)}">${f(s.prem_last)}</b></span>
+    <span>数据 <b>${days} 天窗口 · 实际 ${s.n} 个快照点</b></span>
+  </div>`;
+}
+function rangeChart(pts, s, days){
+  // pts: [ts, price, premium, est_premium]；溢价取 est 优先、premium 兜底
+  const W = 720, H = 170, PL = 8, PR = 8, PT = 10, PB = 22;
+  const vals = pts.map(p => p[3]!=null ? p[3] : p[2]).filter(v=>v!=null);
+  if (vals.length < 2) return `<div class="rchart"><div class="estline" style="padding:30px;text-align:center">数据点不足（${vals.length} 个），继续累积后显示走势</div></div>`;
+  const vmax = Math.max(...vals), vmin = Math.min(...vals);
+  const pad = Math.max((vmax - vmin) * 0.12, 0.3);
+  const yMax = vmax + pad, yMin = vmin - pad;
+  const t0 = pts[0][0], t1 = pts[pts.length-1][0];
+  const X = t => PL + (t - t0) / Math.max(t1 - t0, 1) * (W - PL - PR);
+  const Y = v => PT + (1 - (v - yMin) / Math.max(yMax - yMin, 1e-9)) * (H - PT - PB);
+  // 折线（断点续跳）
+  let d = "", open = false;
+  pts.forEach(p=>{
+    const v = p[3]!=null ? p[3] : p[2];
+    if (v == null){ open = false; return; }
+    d += (open ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(v).toFixed(1) + " ";
+    open = true;
+  });
+  // 零轴 + 均值轴
+  const zeroY = (yMin < 0 && yMax > 0) ? Y(0) : null;
+  const avgY = s && s.prem_avg!=null ? Y(s.prem_avg) : null;
+  // 涨跌着色：末点 vs 首点（中国惯例 红涨绿跌）
+  const first = vals[0], last = vals[vals.length-1];
+  const stroke = last >= first ? "var(--up)" : "var(--down)";
+  // x 轴刻度（最多 5 个）
+  const ticks = [];
+  for (let i = 0; i <= 4; i++){
+    const t = t0 + (t1 - t0) * i / 4;
+    ticks.push(`<text x="${X(t).toFixed(0)}" y="${H-6}" font-size="10" fill="var(--sub)" text-anchor="${i===0?'start':i===4?'end':'middle'}">${days<=1 ? new Date(t*1000).toLocaleTimeString("zh-CN",{hour:'2-digit',minute:'2-digit',hour12:false}) : new Date(t*1000).toLocaleDateString("zh-CN",{month:'numeric',day:'numeric'})}</text>`);
+  }
+  return `<div class="rchart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="溢价走势">
+    ${zeroY!=null ? `<line x1="${PL}" y1="${zeroY.toFixed(1)}" x2="${W-PR}" y2="${zeroY.toFixed(1)}" stroke="var(--line)" stroke-dasharray="3 3"/>` : ""}
+    ${avgY!=null ? `<line x1="${PL}" y1="${avgY.toFixed(1)}" x2="${W-PR}" y2="${avgY.toFixed(1)}" stroke="#185FA5" stroke-dasharray="2 4" opacity=".45"/>` : ""}
+    <path d="${d}" fill="none" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round"/>
+    ${ticks.join("")}
+    <text x="${PL}" y="${PT+2}" font-size="10" fill="var(--sub)">${vmax.toFixed(1)}%</text>
+    <text x="${PL}" y="${H-PB-2}" font-size="10" fill="var(--sub)">${vmin.toFixed(1)}%</text>
+  </svg></div>`;
+}
+
+// 自愈补采：API 模式下交易时段数据滞后，前端自动触发采集（与后端看门狗双保险）
+let lastAutoCollect = 0;
+function inMarketHours(){
+  const d = new Date(Date.now() + 8*3600*1000); // 东八区
+  const wd = d.getUTCDay();
+  if (wd === 0 || wd === 6) return false;
+  const m = d.getUTCHours()*60 + d.getUTCMinutes();
+  return (m >= 570 && m <= 690) || (m >= 780 && m <= 900); // 09:30-11:30 / 13:00-15:00
+}
+async function maybeAutoCollect(){
+  if (state.mode !== "api") return;
+  const nowS = Date.now()/1000;
+  if (!state.updatedTs || nowS - state.updatedTs < 150) return;
+  if (!inMarketHours()) return;
+  if (nowS - lastAutoCollect < 180) return;
+  lastAutoCollect = nowS;
+  state.notice = "检测到数据滞后，正在自动补采…";
+  renderTable();
+  try{
+    const r = await getJSON("api/collect", {method:"POST"}, 10000);
+    if (r && r.ok === false) throw new Error(r.error || "启动失败");
+  }catch(e){
+    state.notice = "自动补采失败：" + e.message;
+    renderTable();
+  }
+}
+
+// 手动刷新：API 模式走后端任务+轮询（不占着连接等 40-90 秒）；静态模式直接重载 JSON
+let pollTimer = null;
+async function startCollect(){
+  const b = document.getElementById("refreshBtn");
+  if (state.mode === "static"){
+    b.disabled = true; b.textContent = "载入中…";
+    try { await load(); } finally { b.disabled = false; b.textContent = "重新载入"; }
+    return;
+  }
+  b.disabled = true; b.textContent = "采集中…";
+  try{
+    const r = await getJSON("api/collect", {method:"POST"}, 10000);
+    if (r && r.ok === false) throw new Error(r.error || "启动失败");
+    const t0 = Date.now();
+    pollTimer = setInterval(async ()=>{
+      try{
+        const s = await getJSON("api/collect/status", {}, 8000);
+        if (s.running){ b.textContent = `采集中… ${Math.round((Date.now()-t0)/1000)}s`; return; }
+        clearInterval(pollTimer); pollTimer = null;
+        b.disabled = false; b.textContent = "手动刷新";
+        if (s.ok === false){
+          state.notice = "采集失败：" + (s.error || "") + "（数据仍为上一次快照）";
+          renderTable();
+          return;
+        }
+        await load();
+        if (!document.getElementById("meta").textContent.startsWith("接口异常")){
+          state.notice = `刷新成功（${s.count}只/${s.elapsed}s）`;
+          document.getElementById("meta").textContent = metaText();
+        }
+      }catch(e){
+        if (Date.now() - t0 > 200000){
+          clearInterval(pollTimer); pollTimer = null;
+          b.disabled = false; b.textContent = "手动刷新";
+          document.getElementById("meta").textContent = "采集状态查询失败：" + e.message + "（数据仍为上一次快照）";
+        }
+      }
+    }, 2000);
+  }catch(e){
+    b.disabled = false; b.textContent = "手动刷新";
+    document.getElementById("meta").textContent = "刷新失败：" + e.message + "（数据仍为上一次快照）";
+  }
+}
+document.getElementById("refreshBtn").onclick = startCollect;
+
+// 手动刷新份额：API 模式走后端任务+轮询（沪深交易所全量，10-60 秒）；静态模式直接重载
+let shPollTimer = null;
+async function startSharesRefresh(){
+  const b = document.getElementById("sharesBtn");
+  if (state.mode === "static"){
+    b.disabled = true; b.textContent = "载入中…";
+    try { await load(); } finally { b.disabled = false; b.textContent = "刷新份额"; }
+    return;
+  }
+  b.disabled = true; b.textContent = "刷新中…";
+  try{
+    const r = await getJSON("api/collect/shares", {method:"POST"}, 10000);
+    if (r && r.ok === false) throw new Error(r.error || "启动失败");
+    const t0 = Date.now();
+    shPollTimer = setInterval(async ()=>{
+      try{
+        const s = await getJSON("api/collect/shares/status", {}, 8000);
+        if (s.running){ b.textContent = `刷新中… ${Math.round((Date.now()-t0)/1000)}s`; return; }
+        clearInterval(shPollTimer); shPollTimer = null;
+        b.disabled = false; b.textContent = "刷新份额";
+        if (s.ok === false){
+          state.notice = "份额刷新失败：" + (s.error || "") + "（数据仍为上一次快照）";
+          renderTable();
+          return;
+        }
+        await load();
+        state.notice = `份额刷新成功（${s.count}只/${s.elapsed}s）`;
+        document.getElementById("meta").textContent = metaText();
+      }catch(e){
+        if (Date.now() - t0 > 120000){
+          clearInterval(shPollTimer); shPollTimer = null;
+          b.disabled = false; b.textContent = "刷新份额";
+          document.getElementById("meta").textContent = "份额状态查询失败：" + e.message + "（数据仍为上一次快照）";
+        }
+      }
+    }, 2000);
+  }catch(e){
+    b.disabled = false; b.textContent = "刷新份额";
+    document.getElementById("meta").textContent = "份额刷新失败：" + e.message + "（数据仍为上一次快照）";
+  }
+}
+document.getElementById("sharesBtn").onclick = startSharesRefresh;
+
+(async()=>{
+  await detectMode();
+  bindSortHeads();
+  load();
+  setInterval(load, 60000);
+})();
+
+// PWA：注册 Service Worker（离线可看上次数据）
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+  // 新版本 SW 接管后自动刷新一次，保证已安装到主屏幕的用户也能拿到新版页面
+  let swRefreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (swRefreshing) return;
+    swRefreshing = true;
+    location.reload();
+  });
+}
+</script>
+</body>
+</html>
