@@ -93,6 +93,15 @@ def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
                         "total": len(push_items),
                         "items": list(reversed(push_items))},
                        ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    pick = None
+    try:
+        from app.pick import evaluate as pick_evaluate
+        pick = pick_evaluate(rows)
+    except Exception as e:  # noqa: BLE001
+        print(f"daily_pick evaluate failed: {e}")
+    (out_dir / "daily_pick.json").write_text(
+        json.dumps({"generated_at": generated_at, "pick": pick},
+                   ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     size = sum(p.stat().st_size for p in out_dir.glob("*.json"))
     return {"ok": True, "total": len(rows), "series": len(series), "bytes": size}
 
