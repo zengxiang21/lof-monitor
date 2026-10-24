@@ -1,0 +1,43 @@
+name: 仓库月度瘦身
+
+# JSONL 数据每 tick 追加（约 2MB/天），git 历史会累积。
+# 每月 1 日检查：数据目录超过 150MB 时 orphan 重建 main（丢弃 git 历史、
+# 保留全部文件），force-push 后 Pages 自动重建。repo 体积由此有界。
+on:
+  schedule:
+    - cron: "0 16 1 * *"      # 每月 1 日 00:00（北京时间）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  squash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 检查数据体积
+        id: size
+        run: |
+          bytes=$(du -sb data/store docs/data 2>/dev/null | awk '{s+=$1} END {print s+0}')
+          echo "bytes=$bytes" >> "$GITHUB_OUTPUT"
+          echo "数据目录体积: $((bytes/1024/1024)) MB"
+
+      - name: orphan 重建（丢弃 git 历史，保留全部文件）
+        if: steps.size.outputs.bytes > 150000000
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan slim
+          git add -A
+          git commit -m "squash: 月度瘦身 $(date -u +%Y-%m)"
+          git branch -M main
+          git push -f origin main
+          echo "已瘦身"
+
+      - name: 无需瘦身
+        if: steps.size.outputs.bytes <= 150000000
+        run: echo "数据体积未超阈值，跳过"
