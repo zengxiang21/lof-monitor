@@ -156,8 +156,15 @@ def fetch_lof_quotes(codes: list[str] | None = None) -> list[dict]:
     akshare 只给一页 100 条的缺陷），换源重试。腾讯源需要 known codes，
     发现不了新上市品种，故排在最后。所有源都不完整时直接抛错，
     让上一轮完整快照继续作为"最新数据"，避免残缺快照入库污染面板。
+
+    LOF_QUOTES_SOURCE=eastmoney 时跳过 akshare（云端无头环境/CI 用，
+    东财 clist 直连一次拿全量，且已实测 GitHub Actions 可达）。
     """
+    import os
+    prefer = os.environ.get("LOF_QUOTES_SOURCE", "").strip()
     sources: list = [("akshare", _norm_akshare), ("eastmoney", _norm_eastmoney)]
+    if prefer == "eastmoney":
+        sources = [("eastmoney", _norm_eastmoney)]
     if codes:
         sources.append(("tencent", lambda: _norm_tencent(codes)))
     best: list[dict] = []
