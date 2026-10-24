@@ -50,6 +50,7 @@ CRON_TASK = {
     "30 13,14 * * 1-5": "nav,push",
     "45 14 * * 1-5": "calibrate,push",
     "40 14 * * 1-5": "shares,push",
+    "45 6 * * 1-5": "push",          # 14:45 每日精选（收盘前）
 }
 
 STORE_DIR = ROOT / "data" / "store"
