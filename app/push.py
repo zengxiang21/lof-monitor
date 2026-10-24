@@ -38,6 +38,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import threading
 import time
 from datetime import datetime, timedelta, timezone
@@ -231,8 +232,26 @@ def _rate_ok() -> bool:
     return len(_send_ts) < RATE_MAX
 
 
-def send_markdown(content: str) -> tuple[bool, str]:
-    """发送 markdown 到企业微信群机器人。返回 (成功, 错误信息)。"""
+def _split_title_body(content: str) -> tuple[str, str]:
+    """首行为标题，其余为正文（通知栏摘要用）。"""
+    lines = content.split("\n", 1)
+    return lines[0].strip(), (lines[1].strip() if len(lines) > 1 else "")
+
+
+def _plain(text: str) -> str:
+    """去企业微信 <font color> 标签与 markdown 符号，得到纯文本预览。"""
+    text = re.sub(r'<font color="[^"]*">(.*?)</font>', r"\1", text)
+    text = text.replace("**", "")
+    text = re.sub(r"^>\s?", "", text, flags=re.M)
+    return text.strip()
+
+
+def send_message(content: str) -> tuple[bool, str]:
+    """按 webhook 类型自动选择通道发送。
+
+    - Bark（URL 含 api.day.app 或 bark 域名）：POST {title, body, markdown}
+    - 企业微信群机器人：POST {msgtype: markdown, markdown: {content}}
+    """
     url = _env_webhook()
     if not url:
         cfg = load_config()
@@ -241,22 +260,41 @@ def send_markdown(content: str) -> tuple[bool, str]:
         return False, "未配置 webhook（记录模式）"
     if not _rate_ok():
         return False, "触发分钟级限速，本分钟跳过"
+    title, body = _split_title_body(content)
+    is_bark = ("api.day.app" in url) or ("bark" in url.lower())
     try:
-        resp = http_post(url, json_body={"msgtype": "markdown",
-                                         "markdown": {"content": content}},
-                         timeout=SEND_TIMEOUT)
+        if is_bark:
+            resp = http_post(url.rstrip("/"), timeout=SEND_TIMEOUT, json_body={
+                "title": title[:60],
+                "body": _plain(body)[:240],
+                "markdown": body,
+                "group": "LOF套利",
+            })
+        else:
+            resp = http_post(url, json_body={"msgtype": "markdown",
+                                             "markdown": {"content": content}},
+                             timeout=SEND_TIMEOUT)
         data = {}
         try:
             data = resp.json()
         except Exception:  # noqa: BLE001
             pass
-        if resp.status_code == 200 and data.get("errcode") == 0:
+        ok = resp.status_code == 200 and (
+            data.get("errcode") == 0          # 企业微信
+            or data.get("code") == 200        # Bark
+            or data.get("message") == "success")
+        if ok:
             with _lock:
                 _send_ts.append(time.time())
             return True, ""
-        return False, f"HTTP {resp.status_code} {data.get('errmsg', '')}"
+        return False, f"HTTP {resp.status_code} {data.get('errmsg') or data.get('message', '')}"
     except Exception as e:  # noqa: BLE001
         return False, str(e)
+
+
+def send_markdown(content: str) -> tuple[bool, str]:
+    """兼容旧入口：等同 send_message。"""
+    return send_message(content)
 
 
 def _pct(v: float | None) -> str:
