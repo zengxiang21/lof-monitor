@@ -1,0 +1,77 @@
+name: 云端采集
+
+# 电脑关机时的数据源：GitHub Actions（境外机房）直连东财/交易所采集。
+# 实测可达：push2 行情、api.fund.eastmoney 估值/净值、fund.eastmoney 基金页、
+# query.sse.com.cn 上交所份额、fund.szse.cn 深交所份额（偶发超时，有兜底）。
+#
+# 数据流：ci_tick.py → data/store/（JSONL 增量）→ export_static --store
+# → docs/data/ → 提交推送 → GitHub Pages（legacy 分支模式）自动部署。
+# 面板零改动：docs/data/ 与 web/data/ 结构完全一致。
+on:
+  schedule:
+    - cron: "*/5 1-7 * * 1-5"      # 盘中行情（北京时间 9:00–15:55，每 5 分钟）
+    - cron: "5 1 * * 1-5"          # 09:05 申购状态（随净值任务）
+    - cron: "10 1,7 * * 1-5"       # 09:10 / 15:10 申购限额
+    - cron: "40 14 * * 1-5"        # 22:40 场内份额
+    - cron: "30 13,14 * * 1-5"     # 21:30 / 22:30 净值 + 误差配对
+    - cron: "45 14 * * 1-5"        # 22:45 β 校准
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 手动执行的任务
+        default: collect
+        type: choice
+        options: [collect, nav, limits, shares, calibrate, status]
+      force:
+        description: collect 无视开盘判断强制采集（调试用）
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cloud-collect
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安装依赖（仅 httpx）
+        run: pip install -r requirements-cloud.txt
+
+      - name: 执行采集任务
+        id: tick
+        env:
+          GH_SCHEDULE: ${{ github.event.schedule }}
+          LOF_QUOTES_SOURCE: eastmoney
+          LOF_NO_AKSHARE: "1"
+        run: |
+          args=(--task "${{ github.event.inputs.task || '' }}")
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then args+=(--force); fi
+          python scripts/ci_tick.py "${args[@]}"
+
+      - name: 导出静态数据（Pages 发布目录 docs/data）
+        if: steps.tick.outputs.dirty == 'true'
+        run: python scripts/export_static.py --store --out docs/data
+
+      - name: 提交并推送（触发 Pages 自动部署）
+        if: steps.tick.outputs.dirty == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/store docs/data
+          if git diff --cached --quiet; then
+            echo "无变化，跳过提交"
+          else
+            git commit -m "data: 云端采集 $(TZ=Asia/Shanghai date '+%m-%d %H:%M') task=${{ github.event.inputs.task || github.event.schedule }}"
+            git pull --rebase origin main || true
+            git push
+          fi
