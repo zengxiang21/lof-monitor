@@ -67,6 +67,15 @@
   .estline b{color:var(--text);font-weight:500}
   .hist{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px}
   .hist table th,.hist table td{font-size:12px;padding:6px}
+  /* 多日历史回看 */
+  .rtabs{display:flex;gap:6px;margin:10px 0 8px;flex-wrap:wrap}
+  .rtabs button{font-size:12px;padding:4px 12px;border:1px solid var(--line);border-radius:20px;background:#fff;color:var(--sub);cursor:pointer}
+  .rtabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .rchart{border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 6px 4px}
+  .rchart svg{display:block;width:100%;height:auto}
+  .rstat{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--sub);margin:8px 0 10px}
+  .rstat b{color:var(--text);font-weight:500}
+  .rstat .up{color:var(--up)} .rstat .down{color:var(--down)}
   .empty{padding:40px;text-align:center;color:var(--sub);font-size:13px}
   @media (max-width:560px){
     .opt{display:none}          /* 手机端精简：成交额、T-1净值、份额Δ */
@@ -125,7 +134,7 @@
 const CATS = ["全部","原油","有色","海外","港股","科技","A股"];
 let state = { cat:"全部", sort:"premium", sortKey:"premium", sortDir:"desc",
               rows:[], counts:{}, updatedTs:0, open:null,
-              mode:"api", hist:{}, histTs:0, notice:null };
+              mode:"api", hist:{}, histTs:0, notice:null, ranges:null };
 
 const fmtPct = v => v==null ? "—" : (v>0?"+":"") + v.toFixed(2) + "%";
 const fmtAmt = v => v==null ? "—" : (v>=1e8 ? (v/1e8).toFixed(2)+"亿" : (v/1e4).toFixed(0)+"万");
@@ -367,9 +376,36 @@ async function toggleDetail(code, tr){
 }
 
 async function insertDetail(tr, code){
-  let h;
+  let items, cal = {};
   try{
-    h = await getJSON(`api/lof/${code}/history?limit=60`);
+    if (state.mode === "api"){
+      const h = await getJSON(`api/lof/${code}/history?limit=60`);
+      items = h.items || [];
+      cal = h.calibration || {};
+    } else {
+      // 静态模式：history.json 紧凑序列 [ts, premium, est_premium] → item 格式
+      if (!state.histTs){
+        try{
+          const h = await getJSON(`data/history.json?t=${Date.now()}`, {}, 30000);
+          state.hist = h.series || {}; state.histTs = Date.now()/1000;
+        }catch(e){}
+      }
+      items = (state.hist[code] || []).slice(-60).map(p=>({
+        ts: p[0], premium: p[1], est_premium: p[2]
+      }));
+      // 用 snapshot 当前行丰富名称/估算/现价（末点）
+      const row = (state.rows || []).find(r=>r.code===code);
+      if (row){
+        if (items.length){
+          const last = items[items.length-1];
+          last.name = row.name; last.price = row.price; last.amount = row.amount;
+          last.est_nav = row.est_nav; last.est_nav_raw = row.est_nav_raw;
+          last.est_source = row.est_source;
+          if (row.est_premium != null) last.est_premium = row.est_premium;
+        }
+        cal.beta = row.beta;
+      }
+    }
   }catch(e){
     const tr2 = document.createElement("tr");
     const td = document.createElement("td");
@@ -379,14 +415,12 @@ async function insertDetail(tr, code){
     return;
   }
   try{
-    const items = h.items || [];
     const cur = items[items.length-1] || {};
-    const cal = h.calibration || {};
     const srcName = cur.est_source==='official' ? '天天基金官方估值'
                    : cur.est_source==='holdings' ? '前十大持仓穿透'
                    : cur.est_source==='anchor' ? '外盘锚点推算' : '估算';
     const betaTag = (cal.beta && Math.abs(cal.beta-1) > 0.0005)
-      ? `，β=<b>${cal.beta.toFixed(4)}</b> 校准（原始 ${cur.est_nav_raw != null ? (+cur.est_nav_raw).toFixed(4) : "—"}，${cal.level==='fund'?'个体':'组级'} n=${cal.n ?? 0}）` : "";
+      ? `，β=<b>${cal.beta.toFixed(4)}</b> 校准（原始 ${cur.est_nav_raw != null ? (+cur.est_nav_raw).toFixed(4) : "—"}${cal.level ? `，${cal.level==='fund'?'个体':'组级'}${cal.n!=null?' n='+cal.n:''}` : ""}）` : "";
     const errLine = (cal.recent && cal.recent.length)
       ? `<div class="estline">估算误差回测（近 ${cal.recent.length} 日）：` +
         cal.recent.map(r=>`<span class="${cls(r.err_pct)}">${r.err_pct>0?'+':''}${r.err_pct.toFixed(2)}%</span>`).join(" / ") +
@@ -400,6 +434,9 @@ async function insertDetail(tr, code){
     const td = document.createElement("td");
     td.colSpan = 12; td.className = "detail";
     td.innerHTML = `<h3>${code} ${cur.name||""} · 历史快照（最近 ${items.length} 次，每分钟一次）</h3>${estHtml}` +
+      `<div class="rtabs" id="rt-${code}">` +
+        RANGES.map(d=>`<button data-d="${d}" class="${d===7?'on':''}">${d===1?'日内':d+'天'}</button>`).join("") +
+      `</div><div id="rc-${code}"><div class="estline">区间数据加载中…</div></div>` +
       `<div class="hist"><table><thead><tr>
         <th>时间</th><th>现价</th><th>估算净值</th><th>估算溢价</th><th>成交额</th>
       </tr></thead><tbody>` +
@@ -411,7 +448,96 @@ async function insertDetail(tr, code){
       `</tbody></table></div>`;
     tr2.appendChild(td);
     tr.after(tr2);
+    // 区间 tab 绑定 + 默认加载 7 天
+    const tabs = td.querySelector(`#rt-${code}`);
+    tabs.addEventListener("click", (ev)=>{
+      const btn = ev.target.closest("button");
+      if (!btn) return;
+      tabs.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===btn));
+      loadRange(code, +btn.dataset.d);
+    });
+    loadRange(code, 7);
   }catch(e){ /* 忽略 */ }
+}
+
+// —— 多日历史回看（7/30/90 天）——
+const RANGES = [7, 30, 90];
+async function loadRange(code, days){
+  const box = document.getElementById(`rc-${code}`);
+  if (!box) return;
+  try{
+    let rg;
+    if (state.mode === "api"){
+      const h = await getJSON(`api/lof/${code}/history?days=${days}`, {}, 15000);
+      rg = h.range;
+    } else {
+      if (!state.ranges){
+        const r = await getJSON(`data/history_ranges.json?t=${Date.now()}`, {}, 30000);
+        state.ranges = r.ranges || {};
+      }
+      rg = (state.ranges[code] || {})[String(days)];
+    }
+    if (!rg || !rg.points || !rg.points.length){
+      box.innerHTML = `<div class="estline">该区间暂无数据（系统已累积 ${rg?.data_days ?? "?"} 天，继续累积后自动可见）</div>`;
+      return;
+    }
+    box.innerHTML = rangeChart(rg.points, rg.stats, days) + rangeStats(rg.stats, days);
+  }catch(e){
+    box.innerHTML = `<div class="estline">区间数据加载失败：${e.message}</div>`;
+  }
+}
+function rangeStats(s, days){
+  if (!s) return "";
+  const f = v => v==null ? "—" : (v>0?"+":"") + v.toFixed(2) + "%";
+  const amp = (s.prem_max!=null && s.prem_min!=null) ? (s.prem_max - s.prem_min) : null;
+  return `<div class="rstat">
+    <span>区间最高 <b class="up">${f(s.prem_max)}</b></span>
+    <span>区间最低 <b class="down">${f(s.prem_min)}</b></span>
+    <span>平均 <b>${f(s.prem_avg)}</b></span>
+    <span>振幅 <b>${amp!=null?amp.toFixed(2)+"%":"—"}</b></span>
+    <span>最新 <b class="${cls(s.prem_last)}">${f(s.prem_last)}</b></span>
+    <span>数据 <b>${days} 天窗口 · 实际 ${s.n} 个快照点</b></span>
+  </div>`;
+}
+function rangeChart(pts, s, days){
+  // pts: [ts, price, premium, est_premium]；溢价取 est 优先、premium 兜底
+  const W = 720, H = 170, PL = 8, PR = 8, PT = 10, PB = 22;
+  const vals = pts.map(p => p[3]!=null ? p[3] : p[2]).filter(v=>v!=null);
+  if (vals.length < 2) return `<div class="rchart"><div class="estline" style="padding:30px;text-align:center">数据点不足（${vals.length} 个），继续累积后显示走势</div></div>`;
+  const vmax = Math.max(...vals), vmin = Math.min(...vals);
+  const pad = Math.max((vmax - vmin) * 0.12, 0.3);
+  const yMax = vmax + pad, yMin = vmin - pad;
+  const t0 = pts[0][0], t1 = pts[pts.length-1][0];
+  const X = t => PL + (t - t0) / Math.max(t1 - t0, 1) * (W - PL - PR);
+  const Y = v => PT + (1 - (v - yMin) / Math.max(yMax - yMin, 1e-9)) * (H - PT - PB);
+  // 折线（断点续跳）
+  let d = "", open = false;
+  pts.forEach(p=>{
+    const v = p[3]!=null ? p[3] : p[2];
+    if (v == null){ open = false; return; }
+    d += (open ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(v).toFixed(1) + " ";
+    open = true;
+  });
+  // 零轴 + 均值轴
+  const zeroY = (yMin < 0 && yMax > 0) ? Y(0) : null;
+  const avgY = s && s.prem_avg!=null ? Y(s.prem_avg) : null;
+  // 涨跌着色：末点 vs 首点（中国惯例 红涨绿跌）
+  const first = vals[0], last = vals[vals.length-1];
+  const stroke = last >= first ? "var(--up)" : "var(--down)";
+  // x 轴刻度（最多 5 个）
+  const ticks = [];
+  for (let i = 0; i <= 4; i++){
+    const t = t0 + (t1 - t0) * i / 4;
+    ticks.push(`<text x="${X(t).toFixed(0)}" y="${H-6}" font-size="10" fill="var(--sub)" text-anchor="${i===0?'start':i===4?'end':'middle'}">${days<=1 ? new Date(t*1000).toLocaleTimeString("zh-CN",{hour:'2-digit',minute:'2-digit',hour12:false}) : new Date(t*1000).toLocaleDateString("zh-CN",{month:'numeric',day:'numeric'})}</text>`);
+  }
+  return `<div class="rchart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="溢价走势">
+    ${zeroY!=null ? `<line x1="${PL}" y1="${zeroY.toFixed(1)}" x2="${W-PR}" y2="${zeroY.toFixed(1)}" stroke="var(--line)" stroke-dasharray="3 3"/>` : ""}
+    ${avgY!=null ? `<line x1="${PL}" y1="${avgY.toFixed(1)}" x2="${W-PR}" y2="${avgY.toFixed(1)}" stroke="#185FA5" stroke-dasharray="2 4" opacity=".45"/>` : ""}
+    <path d="${d}" fill="none" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round"/>
+    ${ticks.join("")}
+    <text x="${PL}" y="${PT+2}" font-size="10" fill="var(--sub)">${vmax.toFixed(1)}%</text>
+    <text x="${PL}" y="${H-PB-2}" font-size="10" fill="var(--sub)">${vmin.toFixed(1)}%</text>
+  </svg></div>`;
 }
 
 // 自愈补采：API 模式下交易时段数据滞后，前端自动触发采集（与后端看门狗双保险）
