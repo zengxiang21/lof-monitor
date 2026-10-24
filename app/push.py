@@ -66,10 +66,12 @@ RATE_MAX = 18               # 窗口内最多发送条数（留 2 条余量给�
 DEFAULT_CONFIG = {
     "webhook": "",
     "rules": {
-        "share_surge": {"enabled": True, "threshold": 5.0},
-        "limit_change": {"enabled": True, "threshold": 20.0},
-        "premium_watch": {"enabled": True, "threshold": 2.0, "cooldown_min": 60},
-        "stale_data": {"enabled": True, "threshold_min": 10},
+        # 盘中异动类规则默认关闭（用户选择只收每日精选）；
+        # 需要时在 data/store/push_config.json 里把 enabled 改 true 即可
+        "share_surge": {"enabled": False, "threshold": 5.0},
+        "limit_change": {"enabled": False, "threshold": 20.0},
+        "premium_watch": {"enabled": False, "threshold": 2.0, "cooldown_min": 60},
+        "stale_data": {"enabled": False, "threshold_min": 10},
         "daily_pick": {"enabled": True},
     },
 }
