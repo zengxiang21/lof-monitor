@@ -12,7 +12,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1859,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160106": {
    "name": "南方高增LOF",
@@ -26,7 +26,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4233,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160119": {
    "name": "500ETF联接LOF",
@@ -40,7 +40,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.9568,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160125": {
    "name": "南方香港LOF",
@@ -54,7 +54,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.392,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160127": {
    "name": "南方消费LOF",
@@ -68,7 +68,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8061,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160128": {
    "name": "南方金利定开",
@@ -94,7 +94,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 4.0295,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160135": {
    "name": "高铁基金LOF",
@@ -108,7 +108,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0012,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160140": {
    "name": "美国REIT精选LOF",
@@ -120,7 +120,7 @@
    "shares": 77123900.0,
    "shares_date": "2026-10-24",
    "share_chg_pct": 0.0,
-   "beta": 0.9954692528374994
+   "beta": 1.0
   },
   "160142": {
    "name": "南方优势产业LOF",
@@ -134,7 +134,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9781,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160143": {
    "name": "创业板定开南方",
@@ -148,7 +148,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3411,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160211": {
    "name": "国泰小盘LOF",
@@ -162,7 +162,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.6047,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160212": {
    "name": "国泰估值LOF",
@@ -176,7 +176,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.4114,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160215": {
    "name": "国泰价值LOF",
@@ -190,7 +190,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.3338,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160216": {
    "name": "国泰商品LOF",
@@ -216,7 +216,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.5698,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160219": {
    "name": "医药LOF",
@@ -230,7 +230,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.5596,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160220": {
    "name": "国泰民益LOF",
@@ -244,7 +244,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 4.1018,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160221": {
    "name": "有色金属LOF",
@@ -258,7 +258,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.9303,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160222": {
    "name": "食品LOF",
@@ -272,7 +272,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.6683,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160223": {
    "name": "创业板LOF",
@@ -286,7 +286,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.5687,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160225": {
    "name": "新能源汽车LOF",
@@ -300,7 +300,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.5018,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160311": {
    "name": "华夏蓝筹LOF",
@@ -314,7 +314,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3491,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160314": {
    "name": "华夏行业LOF",
@@ -328,7 +328,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1808,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160322": {
    "name": "港股精选LOF",
@@ -342,7 +342,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9023,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160323": {
    "name": "华夏磐泰LOF",
@@ -358,7 +358,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.7387,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160324": {
    "name": "华夏磐晟LOF",
@@ -372,7 +372,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.8583,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160325": {
    "name": "华夏创业板定开",
@@ -386,7 +386,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3069,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160416": {
    "name": "石油基金LOF",
@@ -402,7 +402,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 2.3887,
-   "beta": 0.9954692528374994
+   "beta": 0.9897
   },
   "160421": {
    "name": "华安智增LOF",
@@ -416,7 +416,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4986,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160505": {
    "name": "博时主题LOF",
@@ -430,7 +430,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9652,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160512": {
    "name": "博时卓越LOF",
@@ -444,7 +444,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.4211,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160513": {
    "name": "稳健债LOF",
@@ -482,7 +482,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.2728,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160526": {
    "name": "博时优势企业",
@@ -496,7 +496,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2225,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160527": {
    "name": "博时研究优选LOF",
@@ -510,7 +510,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.7231,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160529": {
    "name": "创业板博时定开",
@@ -524,7 +524,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2635,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160607": {
    "name": "鹏华价值优势LOF",
@@ -538,7 +538,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.7473,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160610": {
    "name": "鹏华动力LOF",
@@ -552,7 +552,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1855,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160611": {
    "name": "鹏华优质治理LOF",
@@ -566,7 +566,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3041,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160613": {
    "name": "鹏华盛世创新LOF",
@@ -580,7 +580,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1959,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160615": {
    "name": "鹏华300LOF",
@@ -594,7 +594,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2696,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160616": {
    "name": "鹏华500LOF",
@@ -608,7 +608,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.0515,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160617": {
    "name": "鹏华丰润LOF",
@@ -646,7 +646,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.5302,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "160621": {
    "name": "鹏华丰和LOF",
@@ -660,7 +660,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4012,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160622": {
    "name": "鹏华丰利LOF",
@@ -686,7 +686,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.7998,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160626": {
    "name": "信息LOF",
@@ -700,7 +700,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3804,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160628": {
    "name": "地产LOF",
@@ -714,7 +714,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.4978,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160629": {
    "name": "传媒LOF",
@@ -728,7 +728,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0226,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160630": {
    "name": "国防LOF",
@@ -742,7 +742,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9512,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160631": {
    "name": "银行LOF基金",
@@ -756,7 +756,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4184,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160632": {
    "name": "酒LOF",
@@ -770,7 +770,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.2648,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160633": {
    "name": "券商LOF",
@@ -784,7 +784,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.013,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160635": {
    "name": "医药LOF基金",
@@ -798,7 +798,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8793,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160637": {
    "name": "创业板LOF基金",
@@ -812,7 +812,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2956,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160638": {
    "name": "带路LOF",
@@ -826,7 +826,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.6961,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "160639": {
    "name": "高铁LOF",
@@ -840,7 +840,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8432,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160641": {
    "name": "鹏华丰锐LOF",
@@ -866,7 +866,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.4921,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160643": {
    "name": "空天军工LOF",
@@ -880,7 +880,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1186,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160644": {
    "name": "港美互联网LOF",
@@ -894,7 +894,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6277,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160706": {
    "name": "沪深300LOF",
@@ -920,7 +920,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.0898,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "160717": {
    "name": "H股LOF",
@@ -934,7 +934,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.6679,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160719": {
    "name": "嘉实黄金LOF",
@@ -950,7 +950,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.7673,
-   "beta": 0.9907429363576027
+   "beta": 0.9897
   },
   "160722": {
    "name": "嘉实惠泽LOF",
@@ -964,7 +964,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.8511,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160723": {
    "name": "嘉实原油LOF",
@@ -980,7 +980,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 2.6046,
-   "beta": 0.9907429363576027
+   "beta": 0.9897
   },
   "160726": {
    "name": "嘉实瑞享定开",
@@ -994,7 +994,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9834,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160805": {
    "name": "长盛同智LOF",
@@ -1008,7 +1008,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.6751,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160806": {
    "name": "长盛中证800LOF",
@@ -1022,7 +1022,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.8681,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160807": {
    "name": "长盛沪深300LOF",
@@ -1036,7 +1036,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 1.6563,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "160812": {
    "name": "长盛同益LOF",
@@ -1050,7 +1050,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.0938,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160813": {
    "name": "长盛同盛LOF",
@@ -1064,7 +1064,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.5322,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160910": {
    "name": "创新成长LOF",
@@ -1078,7 +1078,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9311,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160916": {
    "name": "优选LOF",
@@ -1092,7 +1092,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 4.407,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160918": {
    "name": "中小盘LOF",
@@ -1106,7 +1106,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.512,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160919": {
    "name": "产业升级LOF",
@@ -1120,7 +1120,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.1442,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160921": {
    "name": "多策略LOF",
@@ -1134,7 +1134,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3269,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160924": {
    "name": "恒生指数LOF",
@@ -1148,7 +1148,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9133,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160925": {
    "name": "沪深港300LOF",
@@ -1162,7 +1162,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1907,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160926": {
    "name": "创业板定开",
@@ -1176,7 +1176,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9412,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161005": {
    "name": "富国天惠LOF",
@@ -1190,7 +1190,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.6718,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161010": {
    "name": "富国天丰LOF",
@@ -1240,7 +1240,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.2301,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "161019": {
    "name": "富国天锋LOF",
@@ -1266,7 +1266,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.047,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161025": {
    "name": "互联网LOF",
@@ -1280,7 +1280,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2751,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161026": {
    "name": "国企改革LOF",
@@ -1294,7 +1294,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1245,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161027": {
    "name": "证券LOF",
@@ -1308,7 +1308,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9785,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161028": {
    "name": "新能源车LOF",
@@ -1322,7 +1322,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 0.8461,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "161029": {
    "name": "银行龙头LOF",
@@ -1336,7 +1336,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.8438,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161030": {
    "name": "体育LOF",
@@ -1350,7 +1350,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9693,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161031": {
    "name": "工业40LOF",
@@ -1364,7 +1364,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.337,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161032": {
    "name": "煤炭龙头LOF",
@@ -1378,7 +1378,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.2087,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "161033": {
    "name": "智能汽车LOF",
@@ -1392,7 +1392,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6395,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161035": {
    "name": "医药增强LOF",
@@ -1406,7 +1406,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2562,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161036": {
    "name": "娱乐增强LOF",
@@ -1420,7 +1420,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.6412,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161037": {
    "name": "高端制造LOF",
@@ -1434,7 +1434,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.3832,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "161038": {
    "name": "成长LOF",
@@ -1448,7 +1448,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3919,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161039": {
    "name": "1000增强LOF",
@@ -1462,7 +1462,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.3502,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "161040": {
    "name": "创业富国定开",
@@ -1476,7 +1476,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.7691,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161115": {
    "name": "易基岁丰添利LOF",
@@ -1490,7 +1490,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.7572,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161116": {
    "name": "黄金主题LOF",
@@ -1506,7 +1506,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.4666,
-   "beta": 0.9907429363576027
+   "beta": 0.9897
   },
   "161117": {
    "name": "易基永旭添利定开",
@@ -1532,7 +1532,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3595,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161119": {
    "name": "易方达新综债LOF",
@@ -1570,7 +1570,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.5577,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161123": {
    "name": "并购重组LOF",
@@ -1584,7 +1584,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3144,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161124": {
    "name": "港股小盘LOF",
@@ -1600,7 +1600,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8079,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161125": {
    "name": "标普500LOF",
@@ -1616,7 +1616,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 3.087,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "161126": {
    "name": "标普医疗保健LOF",
@@ -1632,7 +1632,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.2444,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "161127": {
    "name": "标普生物科技LOF",
@@ -1646,7 +1646,7 @@
    "share_chg_pct": 0.0,
    "max_amt": 10.0,
    "limit_chg_pct": 0.0,
-   "beta": 0.9954692528374994
+   "beta": 1.0
   },
   "161128": {
    "name": "标普信息科技LOF",
@@ -1662,7 +1662,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 6.5512,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "161129": {
    "name": "原油LOF易方达",
@@ -1678,7 +1678,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 2.1814,
-   "beta": 0.9907429363576027
+   "beta": 0.9897
   },
   "161130": {
    "name": "纳斯达克100LOF",
@@ -1694,7 +1694,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 4.3358,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "161131": {
    "name": "易方达科润LOF",
@@ -1708,7 +1708,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9207,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161132": {
    "name": "易方达科顺定开",
@@ -1722,7 +1722,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.3554,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161216": {
    "name": "国投双债LOF",
@@ -1736,7 +1736,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3835,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161217": {
    "name": "国投资源LOF",
@@ -1750,7 +1750,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.0125,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161219": {
    "name": "国投新兴产业LOF",
@@ -1764,7 +1764,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.1582,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161222": {
    "name": "国投瑞利LOF",
@@ -1778,7 +1778,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.8357,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161224": {
    "name": "国投新丝路LOF",
@@ -1792,7 +1792,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0306,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161225": {
    "name": "国投瑞盈LOF",
@@ -1806,7 +1806,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.4048,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161226": {
    "name": "国投白银LOF",
@@ -1822,7 +1822,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.4997,
-   "beta": 0.9907429363576027
+   "beta": 0.9897
   },
   "161227": {
    "name": "国投深证100LOF",
@@ -1836,7 +1836,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3733,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161229": {
    "name": "国投中国价值LOF",
@@ -1850,7 +1850,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3392,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161232": {
    "name": "国投瑞盛LOF",
@@ -1864,7 +1864,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2567,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161233": {
    "name": "国投瑞泰LOF",
@@ -1878,7 +1878,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.7306,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161505": {
    "name": "银河通利债券LOF",
@@ -1904,7 +1904,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0743,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161610": {
    "name": "融通领先成长LOF",
@@ -1918,7 +1918,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4823,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161614": {
    "name": "融通四季添利LOF",
@@ -1956,7 +1956,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.4009,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "161706": {
    "name": "招商成长LOF",
@@ -1970,7 +1970,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.894,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161713": {
    "name": "招商信用添利LOF",
@@ -1996,7 +1996,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.0329,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161716": {
    "name": "招商双债LOF",
@@ -2022,7 +2022,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0922,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161722": {
    "name": "招商丰泰LOF",
@@ -2036,7 +2036,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.406,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161724": {
    "name": "煤炭等权LOF",
@@ -2050,7 +2050,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.2278,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "161725": {
    "name": "白酒基金LOF",
@@ -2064,7 +2064,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.547,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161726": {
    "name": "生物医药LOF",
@@ -2078,7 +2078,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.3854,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161727": {
    "name": "招商增荣LOF",
@@ -2092,7 +2092,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6379,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161728": {
    "name": "招商优选LOF",
@@ -2106,7 +2106,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4052,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161729": {
    "name": "招商瑞利LOF",
@@ -2120,7 +2120,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.8375,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161810": {
    "name": "银华内需LOF",
@@ -2134,7 +2134,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 4.3206,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161811": {
    "name": "沪深300LOF银华",
@@ -2148,7 +2148,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9645,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161812": {
    "name": "深证100LOF",
@@ -2162,7 +2162,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1699,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161815": {
    "name": "抗通胀LOF",
@@ -2176,7 +2176,7 @@
    "share_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.1619,
-   "beta": 0.9907429363576027
+   "beta": 0.9897
   },
   "161816": {
    "name": "中证90LOF",
@@ -2190,7 +2190,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8865,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161820": {
    "name": "银华纯债LOF",
@@ -2216,7 +2216,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.6634,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161834": {
    "name": "银华鑫锐LOF",
@@ -2230,7 +2230,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.8078,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161837": {
    "name": "银华大盘定开",
@@ -2244,7 +2244,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0246,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161903": {
    "name": "万家行业优选LOF",
@@ -2258,7 +2258,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6724,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161908": {
    "name": "万家添利LOF",
@@ -2286,7 +2286,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.7201,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "161914": {
    "name": "创业板2年定开",
@@ -2300,7 +2300,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8653,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162006": {
    "name": "长城久富LOF",
@@ -2314,7 +2314,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6158,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162105": {
    "name": "金鹰持久增利LOF",
@@ -2328,7 +2328,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3797,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162108": {
    "name": "金鹰元盛债券LOF",
@@ -2342,7 +2342,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3507,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162207": {
    "name": "宏利效率混合LOF",
@@ -2356,7 +2356,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2237,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162215": {
    "name": "宏利聚利债券LOF",
@@ -2382,7 +2382,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 1.4636,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "162307": {
    "name": "海富通A100LOF",
@@ -2396,7 +2396,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3895,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162411": {
    "name": "华宝油气LOF",
@@ -2412,7 +2412,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.0563,
-   "beta": 0.9954692528374994
+   "beta": 0.9897
   },
   "162412": {
    "name": "医疗基金LOF",
@@ -2438,7 +2438,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.8917,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162415": {
    "name": "美国消费LOF",
@@ -2454,7 +2454,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.7653,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "162509": {
    "name": "中证A100LOF",
@@ -2468,7 +2468,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8897,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162605": {
    "name": "景顺鼎益LOF",
@@ -2482,7 +2482,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.26,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162607": {
    "name": "景顺资源LOF",
@@ -2496,7 +2496,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.4927,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162703": {
    "name": "广发小盘LOF",
@@ -2510,7 +2510,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.9025,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162711": {
    "name": "中证500LOF",
@@ -2536,7 +2536,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4282,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "162715": {
    "name": "广发聚源LOF",
@@ -2564,7 +2564,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 3.4138,
-   "beta": 0.9954692528374994
+   "beta": 0.9897
   },
   "162720": {
    "name": "广发创业板定开",
@@ -2578,7 +2578,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1408,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163001": {
    "name": "长信医疗LOF",
@@ -2592,7 +2592,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3415,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163003": {
    "name": "长信利鑫LOF",
@@ -2630,7 +2630,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.666,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163110": {
    "name": "申万量化LOF",
@@ -2644,7 +2644,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.1751,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163111": {
    "name": "申万中小LOF",
@@ -2658,7 +2658,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3382,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163113": {
    "name": "申万证券LOF",
@@ -2672,7 +2672,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8766,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163114": {
    "name": "申万环保LOF",
@@ -2686,7 +2686,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.075,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163115": {
    "name": "申万军工LOF",
@@ -2700,7 +2700,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0689,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163116": {
    "name": "申万电子LOF",
@@ -2714,7 +2714,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.5965,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163118": {
    "name": "医药生物LOF",
@@ -2728,7 +2728,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.6631,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163208": {
    "name": "全球油气能源LOF",
@@ -2744,7 +2744,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.552,
-   "beta": 0.9907429363576027
+   "beta": 0.9897
   },
   "163302": {
    "name": "大摩资源LOF",
@@ -2758,7 +2758,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9585,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163402": {
    "name": "兴全趋势LOF",
@@ -2772,7 +2772,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.7753,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163406": {
    "name": "兴全合润LOF",
@@ -2786,7 +2786,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.0417,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163407": {
    "name": "兴全沪深300LOF",
@@ -2800,7 +2800,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.5157,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "163409": {
    "name": "兴全绿色LOF",
@@ -2814,7 +2814,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3095,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163412": {
    "name": "兴全轻资产LOF",
@@ -2828,7 +2828,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.2831,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163415": {
    "name": "兴全商业模式LOF",
@@ -2842,7 +2842,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 4.5296,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163417": {
    "name": "兴全合宜LOF",
@@ -2856,7 +2856,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.8251,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163418": {
    "name": "兴全合兴LOF",
@@ -2870,7 +2870,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.7759,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163503": {
    "name": "天治核心LOF",
@@ -2884,7 +2884,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.3509,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163801": {
    "name": "中银中国LOF",
@@ -2898,7 +2898,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.7038,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163819": {
    "name": "中银信用增利LOF",
@@ -2912,7 +2912,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2034,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163821": {
    "name": "沪深300等权LOF",
@@ -2926,7 +2926,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.9251,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "163907": {
    "name": "中海惠裕LOF",
@@ -2952,7 +2952,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.5775,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "164206": {
    "name": "天弘添利LOF",
@@ -3002,7 +3002,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8859,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "164508": {
    "name": "国富中证A100LOF",
@@ -3016,7 +3016,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1595,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "164509": {
    "name": "国富恒利债券LOF",
@@ -3042,7 +3042,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2371,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "164701": {
    "name": "黄金LOF",
@@ -3058,7 +3058,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.5358,
-   "beta": 0.9907429363576027
+   "beta": 0.9897
   },
   "164703": {
    "name": "汇添富纯债LOF",
@@ -3084,7 +3084,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0352,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "164808": {
    "name": "工银四季LOF",
@@ -3098,7 +3098,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1015,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "164810": {
    "name": "工银纯债定开",
@@ -3124,7 +3124,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9662,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "164824": {
    "name": "印度基金LOF",
@@ -3162,7 +3162,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8247,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165309": {
    "name": "沪深300LOF建信",
@@ -3176,7 +3176,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.7656,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165311": {
    "name": "信用债LOF",
@@ -3202,7 +3202,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.5744,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165508": {
    "name": "中信保诚深度LOF",
@@ -3216,7 +3216,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.1039,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165509": {
    "name": "中信保诚增强LOF",
@@ -3230,7 +3230,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.222,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165511": {
    "name": "中信保诚500LOF",
@@ -3244,7 +3244,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.9648,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165512": {
    "name": "中信保诚机遇LOF",
@@ -3258,7 +3258,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2707,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165513": {
    "name": "中信保诚商品LOF",
@@ -3284,7 +3284,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1934,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165516": {
    "name": "中信保诚周期LOF",
@@ -3298,7 +3298,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 5.9755,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165517": {
    "name": "中信保诚双盈LOF",
@@ -3324,7 +3324,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0347,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165520": {
    "name": "有色LOF",
@@ -3338,7 +3338,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.372,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "165521": {
    "name": "金融LOF",
@@ -3352,7 +3352,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2575,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165522": {
    "name": "TMTLOF",
@@ -3366,7 +3366,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2385,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165525": {
    "name": "基建工程LOF",
@@ -3380,7 +3380,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.657,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "165528": {
    "name": "中信保诚鼎利LOF",
@@ -3394,7 +3394,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.9776,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "166001": {
    "name": "中欧趋势LOF",
@@ -3408,7 +3408,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4498,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "166006": {
    "name": "中欧成长LOF",
@@ -3422,7 +3422,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.2108,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "166008": {
    "name": "中欧强债LOF",
@@ -3448,7 +3448,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.1107,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "166011": {
    "name": "中欧盛世LOF",
@@ -3462,7 +3462,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.9525,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "166016": {
    "name": "中欧纯债LOF",
@@ -3488,7 +3488,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1382,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "166024": {
    "name": "中欧恒利定开",
@@ -3502,7 +3502,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9426,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "166025": {
    "name": "中欧远见定开",
@@ -3516,7 +3516,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.6793,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "166027": {
    "name": "中欧创业定开",
@@ -3530,7 +3530,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.7543,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "166105": {
    "name": "信澳鑫安LOF",
@@ -3544,7 +3544,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0041,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "166107": {
    "name": "多因子LOF",
@@ -3558,7 +3558,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2783,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "166401": {
    "name": "稳健增利LOF",
@@ -3584,7 +3584,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.8693,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "167002": {
    "name": "鼎越LOF",
@@ -3598,7 +3598,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 4.7024,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "167003": {
    "name": "鼎弘LOF",
@@ -3612,7 +3612,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1659,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "167301": {
    "name": "保险主题LOF",
@@ -3626,7 +3626,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.03,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "167302": {
    "name": "大湾区LOF",
@@ -3640,7 +3640,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9152,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "167501": {
    "name": "安信宝利债券LOF",
@@ -3666,7 +3666,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 1.5003,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "167508": {
    "name": "安信价值发现定开",
@@ -3680,7 +3680,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6173,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "168101": {
    "name": "九泰锐智LOF",
@@ -3694,7 +3694,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2449,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "168102": {
    "name": "九泰锐富LOF",
@@ -3708,7 +3708,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0927,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "168103": {
    "name": "九泰锐益LOF",
@@ -3722,7 +3722,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2739,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "168104": {
    "name": "九泰锐丰LOF",
@@ -3736,7 +3736,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8723,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "168105": {
    "name": "九泰泰富LOF",
@@ -3750,7 +3750,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.9205,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "168203": {
    "name": "钢铁LOF",
@@ -3764,7 +3764,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0709,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "168204": {
    "name": "煤炭LOF",
@@ -3778,7 +3778,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.0374,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "168301": {
    "name": "东海祥龙LOF",
@@ -3792,7 +3792,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8284,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "168401": {
    "name": "红土创新精选LOF",
@@ -3806,7 +3806,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 4.406,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "168701": {
    "name": "金融科技LOF",
@@ -3820,7 +3820,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9676,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "169101": {
    "name": "东方红睿丰LOF",
@@ -3834,7 +3834,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6177,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "169104": {
    "name": "东方红睿满LOF",
@@ -3848,7 +3848,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.5993,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "169105": {
    "name": "东方红睿华LOF",
@@ -3862,7 +3862,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.8448,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "169106": {
    "name": "东方红创优定开",
@@ -3876,7 +3876,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0958,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "169201": {
    "name": "浙商鼎盈LOF",
@@ -3890,7 +3890,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6662,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501001": {
    "name": "财通精选混合LOF",
@@ -3904,7 +3904,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3302,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501005": {
    "name": "精准医疗LOF",
@@ -3918,7 +3918,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.044,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501007": {
    "name": "互联网医疗LOF",
@@ -3932,7 +3932,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8403,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501008": {
    "name": "互联网医疗LOFC",
@@ -3946,7 +3946,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8116,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501009": {
    "name": "生物科技LOF",
@@ -3960,7 +3960,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2288,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501010": {
    "name": "生物科技LOFC",
@@ -3974,7 +3974,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1991,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501011": {
    "name": "中药基金LOF",
@@ -3988,7 +3988,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0022,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501012": {
    "name": "中药基金LOFC",
@@ -4002,7 +4002,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9686,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501015": {
    "name": "财通升级混合LOF",
@@ -4016,7 +4016,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.3271,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501016": {
    "name": "券商基金LOF",
@@ -4030,7 +4030,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1326,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501017": {
    "name": "国泰融丰LOF",
@@ -4044,7 +4044,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3155,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501018": {
    "name": "南方原油LOF",
@@ -4059,7 +4059,7 @@
    "max_amt": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 2.2976,
-   "beta": 0.9907429363576027
+   "beta": 0.9897
   },
   "501019": {
    "name": "军工基金LOF",
@@ -4073,7 +4073,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1598,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501021": {
    "name": "香港中小LOF",
@@ -4087,7 +4087,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1968,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501022": {
    "name": "银华鑫盛LOF",
@@ -4101,7 +4101,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.3158,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501023": {
    "name": "港中小企LOF",
@@ -4127,7 +4127,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.8286,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501026": {
    "name": "财通福享混合LOF",
@@ -4141,7 +4141,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.2065,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501028": {
    "name": "财通福瑞混合LOF",
@@ -4155,7 +4155,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4538,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501029": {
    "name": "红利基金LOF",
@@ -4169,7 +4169,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.7405,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501030": {
    "name": "环境治理LOF",
@@ -4183,7 +4183,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.489,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501031": {
    "name": "环境治理LOFC",
@@ -4197,7 +4197,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.4754,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501032": {
    "name": "财通福盛混合LOF",
@@ -4211,7 +4211,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3761,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501036": {
    "name": "中证500LOF",
@@ -4225,7 +4225,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3316,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501037": {
    "name": "中证500LOFC",
@@ -4239,7 +4239,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3047,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501038": {
    "name": "银华明择",
@@ -4253,7 +4253,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.464,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501043": {
    "name": "沪深300LOF",
@@ -4267,7 +4267,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4383,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501045": {
    "name": "沪深300LOFC",
@@ -4281,7 +4281,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4105,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501046": {
    "name": "财通福鑫定开混合",
@@ -4295,7 +4295,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 6.6542,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501047": {
    "name": "证券公司LOF",
@@ -4309,7 +4309,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.04,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501048": {
    "name": "证券公司LOFC",
@@ -4323,7 +4323,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0287,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501050": {
    "name": "50AHLOF",
@@ -4337,7 +4337,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6127,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501051": {
    "name": "圆信永丰汇利LOF",
@@ -4351,7 +4351,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.9933,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501053": {
    "name": "东方红目标优选",
@@ -4365,7 +4365,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.066,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501057": {
    "name": "新能源车LOF",
@@ -4379,7 +4379,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 1.7889,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "501058": {
    "name": "新能源车LOFC",
@@ -4393,7 +4393,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 1.7498,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "501059": {
    "name": "国企红利LOF",
@@ -4407,7 +4407,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.2485,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "501060": {
    "name": "金选300A类LOF",
@@ -4421,7 +4421,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.32,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "501061": {
    "name": "金选300C类LOF",
@@ -4435,7 +4435,7 @@
    "share_chg_pct": 0.0,
    "est_source": "official",
    "est_nav_raw": 2.2692,
-   "beta": 0.9954692528374994
+   "beta": 0.9999
   },
   "501062": {
    "name": "南方瑞合LOF",
@@ -4449,7 +4449,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6295,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501064": {
    "name": "国泰价值LOF",
@@ -4463,7 +4463,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.2648,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501065": {
    "name": "经典成长",
@@ -4477,7 +4477,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1547,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501070": {
    "name": "广发睿阳",
@@ -4491,7 +4491,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1769,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501071": {
    "name": "泓德丰泽LOF",
@@ -4505,7 +4505,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9034,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501073": {
    "name": "华安智联LOF",
@@ -4519,7 +4519,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.942,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501075": {
    "name": "科创主题LOF",
@@ -4533,7 +4533,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.1053,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501076": {
    "name": "鹏华创新动力LOF",
@@ -4547,7 +4547,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4119,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501077": {
    "name": "富国创新企业LOF",
@@ -4561,7 +4561,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.9806,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501078": {
    "name": "科创配置LOF",
@@ -4575,7 +4575,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.726,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501079": {
    "name": "科创大成LOF",
@@ -4589,7 +4589,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.6293,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501080": {
    "name": "科创主题投资基金LOF",
@@ -4603,7 +4603,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2298,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501081": {
    "name": "科创中欧LOF",
@@ -4617,7 +4617,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.1807,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501082": {
    "name": "科创投资LOF",
@@ -4631,7 +4631,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 3.045,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501083": {
    "name": "科创银华LOF",
@@ -4645,7 +4645,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.7091,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501085": {
    "name": "财通科创LOF",
@@ -4659,7 +4659,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.8471,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501087": {
    "name": "交银瑞丰LOF",
@@ -4673,7 +4673,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2871,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501088": {
    "name": "嘉实瑞虹",
@@ -4687,7 +4687,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.7989,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501089": {
    "name": "消费红利增强LOF",
@@ -4701,7 +4701,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0253,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501090": {
    "name": "消费龙头LOF",
@@ -4715,7 +4715,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0843,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501091": {
    "name": "嘉实欣荣LOF",
@@ -4729,7 +4729,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8965,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501092": {
    "name": "交银瑞思LOF",
@@ -4743,7 +4743,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2125,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501093": {
    "name": "华夏翔阳LOF",
@@ -4757,7 +4757,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3536,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501095": {
    "name": "中银证券科技创新LOF",
@@ -4771,7 +4771,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.6695,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501096": {
    "name": "国联安科创LOF",
@@ -4785,7 +4785,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1033,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501097": {
    "name": "科创国寿LOF",
@@ -4799,7 +4799,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6011,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501098": {
    "name": "科创建信LOF",
@@ -4813,7 +4813,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4563,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501099": {
    "name": "平安新兴产业LOF",
@@ -4827,7 +4827,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 2.5464,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501186": {
    "name": "华夏兴融LOF",
@@ -4841,7 +4841,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.7956,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501188": {
    "name": "添富核心精选LOF",
@@ -4855,7 +4855,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.7638,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501189": {
    "name": "嘉实产业优选LOF",
@@ -4869,7 +4869,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.9553,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501200": {
    "name": "科创加银LOF",
@@ -4883,7 +4883,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0943,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501201": {
    "name": "科创红土LOF",
@@ -4897,7 +4897,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.7775,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501202": {
    "name": "华泰创新先锋LOF",
@@ -4911,7 +4911,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2291,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501203": {
    "name": "易基创新未来LOF",
@@ -4925,7 +4925,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2999,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501205": {
    "name": "鹏华创新未来LOF",
@@ -4939,7 +4939,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.7678,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501206": {
    "name": "添富创新未来LOF",
@@ -4953,7 +4953,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8317,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501207": {
    "name": "华夏创新未来LOF",
@@ -4967,7 +4967,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.6398,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501208": {
    "name": "中欧创新未来LOF",
@@ -4981,7 +4981,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0823,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501209": {
    "name": "富久食品饮料LOF",
@@ -4995,7 +4995,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.4872,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501219": {
    "name": "智胜先锋LOF",
@@ -5009,7 +5009,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4757,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501225": {
    "name": "全球芯片LOF",
@@ -5061,7 +5061,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1221,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501302": {
    "name": "恒生指数基金LOF",
@@ -5087,7 +5087,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.8558,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501305": {
    "name": "港股高股息LOF",
@@ -5101,7 +5101,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2327,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501306": {
    "name": "港股高股息LOFC",
@@ -5115,7 +5115,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1886,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501307": {
    "name": "沪港深红利LOF",
@@ -5129,7 +5129,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2006,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501310": {
    "name": "价值基金LOF",
@@ -5143,7 +5143,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2978,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501311": {
    "name": "港股通新经济LOF",
@@ -5157,7 +5157,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.827,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "501312": {
    "name": "海外科技LOF",
@@ -5185,7 +5185,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.7826,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "502003": {
    "name": "军工LOF",
@@ -5199,7 +5199,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3244,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "502006": {
    "name": "国企改革LOF",
@@ -5213,7 +5213,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.483,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "502010": {
    "name": "证券LOF",
@@ -5227,7 +5227,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1941,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "502013": {
    "name": "一带一路LOF",
@@ -5241,7 +5241,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3195,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "502023": {
    "name": "钢铁LOF",
@@ -5255,7 +5255,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.4384,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "502048": {
    "name": "上证50LOF",
@@ -5269,7 +5269,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2048,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "502053": {
    "name": "券商LOF",
@@ -5283,7 +5283,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0252,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "502056": {
    "name": "医疗基金LOF",
@@ -5297,7 +5297,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 0.669,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "506000": {
    "name": "科创板基金",
@@ -5311,7 +5311,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.2541,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "506001": {
    "name": "万家科创板",
@@ -5325,7 +5325,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.6605,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "506002": {
    "name": "易方达科创板",
@@ -5339,7 +5339,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.7042,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "506003": {
    "name": "富国科创板",
@@ -5353,7 +5353,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.0383,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "506005": {
    "name": "科创板博时",
@@ -5367,7 +5367,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.3044,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "506006": {
    "name": "汇添富科创板",
@@ -5381,7 +5381,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1856,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "506008": {
    "name": "科创板长城",
@@ -5395,7 +5395,7 @@
    "share_chg_pct": 0.0,
    "est_source": "holdings",
    "est_nav_raw": 1.1213,
-   "beta": 0.9899969008115783
+   "beta": 0.9999
   },
   "160326": {
    "shares": 66674500.0,
@@ -5552,6 +5552,12 @@
    "category": "A股"
   }
  },
- "updated_ts": 1792835844,
- "updated": "2026-10-24"
+ "updated_ts": 1792835933,
+ "updated": "2026-10-24",
+ "group_betas": {
+  "holdings": 0.9999,
+  "none": 1.0,
+  "anchor": 0.9897,
+  "official": 0.9999
+ }
 }
