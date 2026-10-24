@@ -29,5 +29,31 @@ jobs:
           probe "深交所主域-基金列表(含份额)" "https://www.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1105&TABKEY=tab1&tab1PAGENO=1" "https://www.szse.cn/market/fund/list/index.html"
           probe "深交所子域-xlsx(旧源)" "https://fund.szse.cn/api/report/ShowReport?SHOWTYPE=xlsx&CATALOGID=1000_lf&TABKEY=tab1" "https://fund.szse.cn/marketdata/fundslist/index.html"
           probe "东财行情clist" "https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=3&po=1&np=1&fltt=2&invt=2&fid=f3&fs=b:MK0021,b:MK0022,b:MK0023,b:MK0024&fields=f12,f14,f2,f3,f5,f6" "https://quote.eastmoney.com/"
+          probe "东财行情clist-pz1000(采集同参)" "https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=1000&po=1&np=1&fltt=2&invt=2&fid=f3&fs=b:MK0021,b:MK0022,b:MK0023,b:MK0024&fields=f12,f14,f2,f3,f5,f6" "https://quote.eastmoney.com/"
           probe "东财估值GetFundGZList" "https://api.fund.eastmoney.com/FundGuZhi/GetFundGZList?type=8&sort=3&orderType=desc&canbuy=0&pageIndex=1&pageSize=3&_=1" "https://fund.eastmoney.com/"
           echo "ALL_PROBES_DONE"
+      - name: httpx 精确复现采集请求
+        run: |
+          pip install -q httpx
+          python - <<'EOF'
+          import httpx
+          UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+          for pz in (3, 100, 1000):
+              url = "https://push2.eastmoney.com/api/qt/clist/get"
+              params = {"pn": 1, "pz": pz, "po": 1, "np": 1, "fltt": 2, "invt": 2,
+                        "fid": "f3", "fs": "b:MK0021,b:MK0022,b:MK0023,b:MK0024",
+                        "fields": "f12,f14,f2,f3,f5,f6"}
+              try:
+                  with httpx.Client(timeout=15, headers={"User-Agent": UA,
+                                                         "Referer": "https://quote.eastmoney.com/"}) as cli:
+                      r = cli.get(url, params=params)
+                  body = r.text
+                  try:
+                      n = len(((r.json().get("data") or {}).get("diff")) or [])
+                  except Exception as e:
+                      n = f"JSON_ERR:{e}"
+                  print(f"pz={pz}: HTTP {r.status_code}, {len(body)}B, diff={n}, head={body[:120]!r}")
+              except Exception as e:
+                  print(f"pz={pz}: EXC {type(e).__name__}: {e}")
+          EOF
