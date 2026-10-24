@@ -21,7 +21,7 @@ on:
         description: 手动执行的任务
         default: collect
         type: choice
-        options: [collect, nav, limits, shares, calibrate, status]
+        options: [collect, nav, limits, shares, calibrate, status, push]
       force:
         description: collect 无视开盘判断强制采集（调试用）
         type: boolean
@@ -44,7 +44,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 安装依赖（仅 httpx）
+      - name: 安装依赖（curl_cffi + httpx）
         run: pip install -r requirements-cloud.txt
 
       - name: 执行采集任务
@@ -53,6 +53,7 @@ jobs:
           GH_SCHEDULE: ${{ github.event.schedule }}
           LOF_QUOTES_SOURCE: eastmoney
           LOF_NO_AKSHARE: "1"
+          LOF_WECOM_WEBHOOK: ${{ secrets.LOF_WECOM_WEBHOOK }}
         run: |
           args=(--task "${{ github.event.inputs.task || '' }}")
           if [ "${{ github.event.inputs.force }}" = "true" ]; then args+=(--force); fi
