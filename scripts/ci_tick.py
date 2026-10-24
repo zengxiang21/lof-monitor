@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -43,12 +44,12 @@ from app.shares import fetch_sse_shares, fetch_em_share  # noqa: E402
 from scripts.store import Store, cn_date, cn_now  # noqa: E402
 
 CRON_TASK = {
-    "*/5 1-7 * * 1-5": "collect",
-    "5 1 * * 1-5": "status",
-    "10 1,7 * * 1-5": "limits",
-    "30 13,14 * * 1-5": "nav",
-    "45 14 * * 1-5": "calibrate",
-    "40 14 * * 1-5": "shares",
+    "*/5 1-7 * * 1-5": "collect,push",
+    "5 1 * * 1-5": "status,push",
+    "10 1,7 * * 1-5": "limits,push",
+    "30 13,14 * * 1-5": "nav,push",
+    "45 14 * * 1-5": "calibrate,push",
+    "40 14 * * 1-5": "shares,push",
 }
 
 STORE_DIR = ROOT / "data" / "store"
@@ -61,10 +62,25 @@ def _log(msg: str) -> None:
 # ---------- 开盘判断（免日历依赖） ----------
 
 def market_ticked_today() -> bool:
-    """东财单只接口的行情时间戳 f86 落在今日 → 今日已开盘。
+    """腾讯行情源：上证指数行情时间戳落在今日 → 今日已开盘。
 
-    周末/节假日 f86 停留在上一交易日 → 自然跳过，无需交易日历。
+    周末/节假日时间戳停留在上一交易日 → 自然跳过，无需交易日历。
+    云端 GitHub 机房 IP 访问东财 push2 会被限流（502），故腾讯优先、
+    东财 f86 兜底（本机或未限流环境可用）。
     """
+    try:
+        from app.http import get as http_get
+        r = http_get("https://qt.gtimg.cn/q=sh000001", timeout=10,
+                     headers={"User-Agent": UA, "Referer": "https://gu.qq.com/"},
+                     encoding="gbk")
+        m = re.search(r'"([^"]*)"', r.text)
+        if m:
+            fields = m.group(1).split("~")
+            if len(fields) > 30 and len(fields[30]) >= 8:
+                return fields[30][:8] == cn_now().strftime("%Y%m%d")
+    except Exception as e:  # noqa: BLE001
+        _log(f"market check (tencent) failed: {e}")
+    # 兜底：东财 f86
     url = "https://push2.eastmoney.com/api/qt/stock/get"
     params = {"secid": "0.161725", "fields": "f43,f57,f86"}
     try:
@@ -294,6 +310,47 @@ def task_calibrate(store: Store) -> bool:
 
 # ---------- 入口 ----------
 
+class StoreDB:
+    """Store → push.py / app.calendar 所需的 db 接口适配器。"""
+
+    def __init__(self, store: Store):
+        self._s = store
+
+    def latest_quotes(self) -> list[dict]:
+        return self._s.latest_rows()
+
+    def share_map(self) -> dict:
+        return self._s.shares_map()
+
+    def limit_map(self) -> dict:
+        return self._s.limits_map()
+
+    def latest_ts(self) -> int:
+        return self._s.latest_ts()
+
+    def trade_day_set(self) -> set[str]:
+        # 云端无日历 DB：有 tick 的日期 = 已开盘交易日
+        return {p.stem for p in self._s.root.glob("20*.jsonl")}
+
+
+def task_push(store: Store, force: bool = False) -> bool:
+    """评估推送规则 → 发送/记录。状态与记录落 store 目录（随 git 提交）。"""
+    from app import push
+    push.set_data_dir(store.root)
+    db = StoreDB(store)
+    try:
+        result = push.run_push(db)
+    except Exception as e:  # noqa: BLE001
+        _log(f"push failed: {type(e).__name__}: {e}")
+        return False
+    _log(f"push: alerts={result['alerts']} sent={result['sent']} "
+         f"recorded={result['recorded']} skipped={result['skipped']} "
+         f"live={result['live']}")
+    for err in result.get("errors", []):
+        _log(f"push error: {err}")
+    return True
+
+
 TASKS = {
     "collect": task_collect,
     "nav": task_nav,
@@ -301,6 +358,7 @@ TASKS = {
     "shares": task_shares,
     "calibrate": task_calibrate,
     "status": task_nav,   # 申购状态随净值任务一并刷新
+    "push": task_push,    # 企业微信推送评估（webhook 经 LOF_WECOM_WEBHOOK 注入）
 }
 
 
@@ -314,23 +372,25 @@ def main() -> int:
                     help="collect 无视开盘判断强制采集（调试用）")
     args = ap.parse_args()
 
-    task = args.task or CRON_TASK.get(args.schedule, "collect")
-    if task not in TASKS:
-        print(f"unknown task: {task}")
-        return 2
+    task_arg = args.task or CRON_TASK.get(args.schedule, "collect")
+    tasks = [t.strip() for t in task_arg.split(",") if t.strip()]
+    for t in tasks:
+        if t not in TASKS:
+            print(f"unknown task: {t}")
+            return 2
     store = Store(STORE_DIR)
-    _log(f"task={task} schedule={args.schedule!r}")
-    fn = TASKS[task]
-    if task == "collect":
-        dirty = fn(store, force=args.force)
-    else:
-        dirty = fn(store)
+    _log(f"tasks={tasks} schedule={args.schedule!r}")
+    dirty = False
+    for t in tasks:
+        fn = TASKS[t]
+        d = fn(store, force=args.force) if t == "collect" else fn(store)
+        dirty = dirty or d
     # 通知 workflow 是否需要导出/提交
     out = os.environ.get("GITHUB_OUTPUT")
     if out and dirty:
         with open(out, "a", encoding="utf-8") as f:
             f.write("dirty=true\n")
-    _log(f"task={task} done, dirty={dirty}")
+    _log(f"tasks={tasks} done, dirty={dirty}")
     return 0
 
 
