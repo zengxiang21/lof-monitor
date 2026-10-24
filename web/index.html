@@ -119,6 +119,14 @@
     </div>
   </div>
 
+  <div class="card" id="pickCard">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3 style="margin:0">今日套利精选 <span class="meta" id="pickDate"></span></h3>
+      <span class="meta" id="pickMeta"></span>
+    </div>
+    <div id="pickBody"><div class="meta">筛选中…</div></div>
+  </div>
+
   <div class="card">
     <div class="swipe" id="swipe">← 左右滑动查看全部列 →</div>
     <div class="tblwrap">
@@ -291,6 +299,7 @@ async function detectMode(){
 async function load(){
   const meta = document.getElementById("meta");
   state.notice = null;
+  loadPick();
   try{
     if (state.mode === "static"){
       const s = await getJSON(`data/snapshot.json?t=${Date.now()}`, {}, 15000);
@@ -704,6 +713,40 @@ document.getElementById("pushBtn").onclick = async () => {
     meta.textContent = "加载失败：" + e.message;
   }
 };
+
+// ---------- 今日精选卡片 ----------
+async function loadPick(){
+  try{
+    const d = await getJSON(`data/daily_pick.json?t=${Date.now()}`, {}, 15000);
+    const body = document.getElementById("pickBody");
+    document.getElementById("pickDate").textContent = d.pick ? d.pick.date : "";
+    if (!d.pick){
+      document.getElementById("pickMeta").textContent = "今日无达标标的";
+      body.innerHTML = '<div class="meta">五关全过才会上榜：溢价≥2% · 申购开放 · 限额≥1万或不限 · 成交额≥2000万 · 净值新鲜</div>';
+      return;
+    }
+    const p = d.pick;
+    document.getElementById("pickMeta").textContent = `全市场 ${p.passed} 只过五关 · 此票第一`;
+    const chg = p.share_chg_pct;
+    const chgTxt = (chg == null) ? "—" : ((chg > 0 ? "+" : "") + chg.toFixed(2) + "%");
+    const amt = p.amount >= 1e8 ? (p.amount / 1e8).toFixed(2) + " 亿" : Math.round(p.amount / 1e4) + " 万";
+    const limit = (p.max_amt == null) ? "不限" : (p.max_amt / 1e4).toFixed(1) + " 万元";
+    const t1 = p.t1_premium;
+    const t1Txt = (t1 == null) ? "—" : ((t1 > 0 ? "+" : "") + t1.toFixed(2) + "%");
+    const estTxt = (p.est_nav == null) ? "—" : p.est_nav;
+    body.innerHTML =
+      `<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">` +
+      `<b style="font-size:17px">${p.code} ${p.name || ""}</b>` +
+      `<span class="up" style="font-size:22px;font-weight:500">+${p.premium.toFixed(2)}%</span>` +
+      `<span class="meta">估算溢价${p.est_nav != null ? "（β 校准后）" : ""}</span></div>` +
+      `<div class="meta" style="margin-top:6px">现价 ${p.price} · 估算净值 ${estTxt} · T-1溢价 ${t1Txt} · 日成交额 ${amt}</div>` +
+      `<div class="meta" style="margin-top:4px">日限额 ${limit} · ${p.sgzt || ""} · 份额Δ ${chgTxt}` +
+      (p.crowded ? ` · <span style="color:var(--down)">拥挤信号，谨慎</span>` : "") + `</div>` +
+      `<div class="meta" style="margin-top:4px">节奏：14:30 后复核溢价 → 15:00 前申购 → T+2 开盘卖出</div>`;
+  }catch(e){
+    document.getElementById("pickMeta").textContent = "加载失败";
+  }
+}
 
 (async()=>{
   await detectMode();
