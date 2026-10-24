@@ -172,6 +172,26 @@ class DB:
                  ORDER BY ts DESC LIMIT ?"""
         return [dict(r) for r in self.conn.execute(sql, (code, limit)).fetchall()]
 
+    def quote_history_range(self, code: str, days: int = 1,
+                            max_pts: int = 400) -> dict:
+        """区间历史（多日回看用）：按 days 取数并按粒度降采样。
+
+        days=1 → 5 分钟级；days=7 → 小时级；days>=30 → 天级（末日末值）。
+        返回 {points: [{ts, price, premium, est_premium, amount}], stats, data_days}
+        stats 基于区间内全部原始点计算（非降采样点），保证统计准确。
+        """
+        import time as _t
+        from .ranges import range_from_points
+        now = int(_t.time())
+        start = now - days * 86400
+        rows = self.conn.execute(
+            """SELECT ts, price, premium, est_premium, amount FROM quotes
+               WHERE code = ? AND ts >= ? ORDER BY ts ASC""",
+            (code, start)).fetchall()
+        if not rows:
+            return {"points": [], "stats": None, "data_days": 0}
+        return range_from_points([dict(r) for r in rows], days, max_pts)
+
     def latest_ts(self) -> int:
         row = self.conn.execute("SELECT MAX(ts) AS mx FROM quotes").fetchone()
         return int(row["mx"]) if row and row["mx"] else 0
