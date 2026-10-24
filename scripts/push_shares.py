@@ -13,7 +13,7 @@ import argparse
 import sys
 from pathlib import Path
 
-import requests
+import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -46,10 +46,12 @@ def main() -> int:
         print("无数据可推送，退出")
         return 1
 
-    r = requests.post(f"{base}/api/shares/push", json={"items": items},
-                      headers={"X-Shares-Token": SHARES_PUSH_TOKEN}, timeout=60)
-    print(f"  HTTP {r.status_code}: {r.text[:200]}")
-    if r.status_code == 200 and r.json().get("ok"):
+    with httpx.Client(timeout=60) as cli:
+        r = cli.post(f"{base}/api/shares/push", json={"items": items},
+                     headers={"X-Shares-Token": SHARES_PUSH_TOKEN})
+        print(f"  HTTP {r.status_code}: {r.text[:200]}")
+        ok = r.status_code == 200 and r.json().get("ok")
+    if ok:
         print("PUSH OK")
         return 0
     print("PUSH FAILED")
