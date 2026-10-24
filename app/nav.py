@@ -10,9 +10,8 @@ from __future__ import annotations
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import httpx
-
 from .config import UA, HTTP_TIMEOUT, NAV_FETCH_CONCURRENCY
+from .http import get as http_get
 
 log = logging.getLogger("lof.nav")
 
@@ -30,8 +29,8 @@ def fetch_fund_record_em(code: str) -> dict:
     """东财 lsjz：一条记录拿回 净值 + 申赎状态。"""
     params = {"fundCode": code, "pageIndex": 1, "pageSize": 3}
     headers = {"User-Agent": UA, "Referer": "https://fundf10.eastmoney.com/"}
-    with httpx.Client(timeout=HTTP_TIMEOUT, headers=headers) as cli:
-        data = cli.get(_LSJZ_URL, params=params).json()
+    data = http_get(_LSJZ_URL, params=params, timeout=HTTP_TIMEOUT,
+                    headers=headers).json()
     lst = ((data.get("Data") or {}).get("LSJZList")) or []
     if not lst:
         return {}
