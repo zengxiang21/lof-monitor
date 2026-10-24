@@ -65,73 +65,13 @@ _official_lock = threading.Lock()
 _official_cache = {"ts": 0.0, "data": {}}
 _OFFICIAL_TTL = 180
 
-# 天天基金估值列表接口（akshare fund_value_estimation_em 同源；httpx 直连，
-# 免 akshare/pandas 依赖——GitHub Actions 云端采集走这条）
-_GUZHI_URL = "https://api.fund.eastmoney.com/FundGuZhi/GetFundGZList"
-_GUZHI_HEADERS = {"User-Agent": UA, "Referer": "https://fund.eastmoney.com/"}
-
-
-def _num_or_none(x):
-    try:
-        if x in (None, "", "-"):
-            return None
-        return float(str(x).replace("%", "").replace(",", ""))
-    except (TypeError, ValueError):
-        return None
-
-
-def fetch_official_estimates_direct() -> dict:
-    """东财 FundGuZhi/GetFundGZList 直连版：{code: {'est_nav','est_pct','pub_nav','pub_pct','dev'}}
-
-    字段位次与 akshare fund_value_estimation_em 的列重命名一致：
-    0=基金代码 6=基金类型 11=估算日期 19=估算偏差 20=估算值 21=估算增长率
-    22=公布日增长率 23=单位净值 24=公布单位净值
-    """
-    params = {"type": 8, "sort": "3", "orderType": "desc", "canbuy": "0",
-              "pageIndex": "1", "pageSize": "20000",
-              "_": int(time.time() * 1000)}
-    with httpx.Client(timeout=HTTP_TIMEOUT, headers=_GUZHI_HEADERS) as cli:
-        data = cli.get(_GUZHI_URL, params=params).json()
-    lst = ((data.get("Data") or {}).get("list")) or []
-    out = {}
-    for row in lst:
-        try:
-            code = str(row[0]).zfill(6)
-            out[code] = {
-                "est_nav": _num_or_none(row[20]),
-                "est_pct": _num_or_none(row[21]),
-                "pub_nav": _num_or_none(row[23]),
-                "pub_pct": _num_or_none(row[22]),
-                "dev": _num_or_none(row[19]),
-            }
-        except (IndexError, TypeError, ValueError):
-            continue
-    return out
-
 
 def fetch_official_estimates(force: bool = False) -> dict:
-    """全市场官方盘中估值：{code: {'est_nav','est_pct','pub_nav','pub_pct','dev'}}
-
-    直连 FundGuZhi 优先（快、无重依赖）；非交易时段接口返回空时回退 akshare
-    （LOF_NO_AKSHARE=1 时完全跳过 akshare，供云端无头环境使用）。
-    """
-    import os
+    """全市场官方盘中估值：{code: {'est_nav','est_pct','pub_nav','pub_pct','dev'}}"""
     now = time.time()
     with _official_lock:
         if not force and now - _official_cache["ts"] < _OFFICIAL_TTL and _official_cache["data"]:
             return _official_cache["data"]
-    try:
-        direct = fetch_official_estimates_direct()
-        if direct:
-            with _official_lock:
-                _official_cache["ts"] = time.time()
-                _official_cache["data"] = direct
-            log.info("official estimates via direct: %d funds", len(direct))
-            return direct
-    except Exception as e:  # noqa: BLE001
-        log.warning("official estimate direct fetch failed: %s", e)
-    if os.environ.get("LOF_NO_AKSHARE") == "1":
-        return _official_cache.get("data") or {}
     try:
         import akshare as ak
         df = ak.fund_value_estimation_em(symbol="全部")
