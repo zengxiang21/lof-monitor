@@ -4,7 +4,7 @@
  *  - /api 读接口 + /data 静态 JSON：network-first，失败时回退缓存（弱网/离线也能看到上次数据）
  *  - POST /api/collect：强制走网络，不缓存
  */
-const VERSION = "v12";
+const VERSION = "v13";
 const SHELL = [
   "/",
   "/index.html",
@@ -83,7 +83,30 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // 同源静态资源：cache-first + 后台更新
+  // 同源 HTML 页面：network-first + 缓存兜底（保证用户总能拿到最新版页面，
+  // 修旧缓存返回过期页面的坑；离线时仍可看上次数据）
+  const isPage = /(^\/$|\.html?$)/.test(url.pathname);
+  if (url.origin === self.location.origin && isPage) {
+    e.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(SHELL_CACHE()).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(async () => {
+          const hit = await caches.match(req);
+          if (hit) return hit;
+          return new Response("<meta charset=utf-8><body style=font-family:sans-serif;padding:2em>网络不可用，稍后自动重试</body>",
+            { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
+        })
+    );
+    return;
+  }
+
+  // 同源其他静态资源（图标/manifest）：cache-first + 后台更新
   if (url.origin === self.location.origin) {
     e.respondWith(
       caches.match(req).then((hit) => {
