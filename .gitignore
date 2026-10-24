@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 本地运行产物
+*.log
+.DS_Store
+
+# SQLite WAL/SHM（主库 lof.db 需要提交，Actions 靠它延续历史）
+data/lof.db-wal
+data/lof.db-shm
+
+# 本地验证截图（不入库）
+shots/
+
+# 本地调试脚本（不入库）
+debug_*.py
+bisect_*.py
+*_check.js
+.workbuddy-ai/
+.online_url
