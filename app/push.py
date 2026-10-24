@@ -97,9 +97,30 @@ def set_data_dir(base: str | Path) -> None:
     STATE_PATH = base / "push_state.json"
 
 
+def _webhook_list() -> list[str]:
+    """全部推送通道：环境变量（优先，支持逗号/分号分隔多 URL）+ 配置文件。
+
+    返回去重后的 URL 列表；Bark 与企业微信通道可混排。
+    """
+    urls: list[str] = []
+    raw = (os.environ.get("LOF_WECOM_WEBHOOK") or "").strip()
+    for part in re.split(r"[,;]", raw):
+        u = part.strip()
+        if u:
+            urls.append(u)
+    cfg = load_config()
+    cw = cfg.get("webhook")
+    for u in (cw if isinstance(cw, list) else [cw] if cw else []):
+        u = (u or "").strip()
+        if u and u not in urls:
+            urls.append(u)
+    return urls
+
+
 def _env_webhook() -> str:
-    """云端 Secret 注入的 webhook（优先于配置文件）。"""
-    return (os.environ.get("LOF_WECOM_WEBHOOK") or "").strip()
+    """兼容旧调用：返回第一个通道。"""
+    lst = _webhook_list()
+    return lst[0] if lst else ""
 
 
 def _deep_merge(base: dict, override: dict) -> dict:
@@ -246,21 +267,10 @@ def _plain(text: str) -> str:
     return text.strip()
 
 
-def send_message(content: str) -> tuple[bool, str]:
-    """按 webhook 类型自动选择通道发送。
-
-    - Bark（URL 含 api.day.app 或 bark 域名）：POST {title, body, markdown}
-    - 企业微信群机器人：POST {msgtype: markdown, markdown: {content}}
-    """
-    url = _env_webhook()
-    if not url:
-        cfg = load_config()
-        url = (cfg.get("webhook") or "").strip()
-    if not url:
-        return False, "未配置 webhook（记录模式）"
+def _send_one(url: str, content: str, title: str, body: str) -> tuple[bool, str]:
+    """向单个通道发送。Bark 与企业微信自动识别。"""
     if not _rate_ok():
         return False, "触发分钟级限速，本分钟跳过"
-    title, body = _split_title_body(content)
     is_bark = ("api.day.app" in url) or ("bark" in url.lower())
     try:
         if is_bark:
@@ -290,6 +300,28 @@ def send_message(content: str) -> tuple[bool, str]:
         return False, f"HTTP {resp.status_code} {data.get('errmsg') or data.get('message', '')}"
     except Exception as e:  # noqa: BLE001
         return False, str(e)
+
+
+def send_message(content: str) -> tuple[bool, str]:
+    """向全部通道发送（Bark 多设备 + 企业微信可混排）。
+
+    - Bark（URL 含 api.day.app）：POST {title, body, markdown}
+    - 企业微信群机器人：POST {msgtype: markdown, markdown: {content}}
+    任一通道成功即视为成功；返回 (是否至少一个成功, 错误汇总)。
+    """
+    urls = _webhook_list()
+    if not urls:
+        return False, "未配置 webhook（记录模式）"
+    title, body = _split_title_body(content)
+    oks: list[str] = []
+    errs: list[str] = []
+    for u in urls:
+        ok, err = _send_one(u, content, title, body)
+        if ok:
+            oks.append(u)
+        else:
+            errs.append(f"{u[:40]}…: {err}")
+    return bool(oks), "; ".join(errs)
 
 
 def send_markdown(content: str) -> tuple[bool, str]:
