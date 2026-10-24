@@ -61,3 +61,19 @@ def get(url: str, params: dict | None = None, headers: dict | None = None,
         r = cli.get(url, params=params)
         text = r.text if encoding is None else r.content.decode(encoding, "ignore")
         return Resp(r.status_code, r.content, text, str(r.url))
+
+
+def post(url: str, json_body: dict | None = None, headers: dict | None = None,
+         timeout: float = 15) -> Resp:
+    """POST JSON（curl_cffi 优先，httpx 兜底）。"""
+    if _creq is not None:
+        try:
+            r = _creq.post(url, json=json_body, headers=headers,
+                           impersonate="chrome", timeout=timeout)
+            return Resp(r.status_code, r.content, r.text, str(r.url))
+        except Exception as e:  # noqa: BLE001
+            log.debug("curl_cffi post failed (%s): %s", url, e)
+    with httpx.Client(timeout=timeout, headers=headers or {},
+                      follow_redirects=True) as cli:
+        r = cli.post(url, json=json_body)
+        return Resp(r.status_code, r.content, r.text, str(r.url))
