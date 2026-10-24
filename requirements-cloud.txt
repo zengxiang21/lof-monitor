@@ -1,3 +1,7 @@
 # GitHub Actions 云端采集依赖（scripts/ci_tick.py + export_static --store）
-# 刻意保持最小：采集全部走 httpx 直连东财/交易所，不依赖 akshare/pandas
+# 刻意保持最小：采集全部走 app.http 统一客户端，不依赖 akshare/pandas
+# - curl_cffi：Chrome TLS 指纹伪装。云端机房 IP 访问东财 push2 时 httpx
+#   被指纹识别拦截（稳定 502），curl_cffi 放行；本地中国 IP 无此限制
+# - httpx：curl_cffi 缺失时的兜底（本机环境）
+curl_cffi>=0.7
 httpx>=0.27
