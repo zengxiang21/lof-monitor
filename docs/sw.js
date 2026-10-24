@@ -4,15 +4,17 @@
  *  - /api 读接口 + /data 静态 JSON：network-first，失败时回退缓存（弱网/离线也能看到上次数据）
  *  - POST /api/collect：强制走网络，不缓存
  */
-const VERSION = "v13";
+const VERSION = "v14";
+// 全部用相对路径（相对 sw.js 自身位置解析），同时兼容根路径部署
+// （沙箱 xxx.agentos-app.run/）与子路径部署（GitHub Pages /<repo>/）
 const SHELL = [
-  "/",
-  "/index.html",
-  "/calibration.html",
-  "/manifest.webmanifest",
-  "/icon-192.png",
-  "/icon-512.png",
-  "/icon.svg",
+  "./",
+  "index.html",
+  "calibration.html",
+  "manifest.webmanifest",
+  "icon-192.png",
+  "icon-512.png",
+  "icon.svg",
 ];
 
 self.addEventListener("install", (e) => {
@@ -39,7 +41,8 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
 
   // /api 读接口：network-first + 缓存回退
-  if (url.pathname.startsWith("/api/")) {
+  // （正则兼容根路径 /api/ 与子路径 /<repo>/api/ 两种部署）
+  if (/(^|\/)api\//.test(url.pathname)) {
     e.respondWith(
       fetch(req)
         .then((res) => {
@@ -61,7 +64,7 @@ self.addEventListener("fetch", (e) => {
 
   // /data 静态 JSON（GitHub Pages 数据源）：network-first + 缓存回退
   // （前端带 ?t= 时间戳防缓存，回退匹配时忽略查询参数）
-  if (url.pathname.startsWith("/data/")) {
+  if (/(^|\/)data\//.test(url.pathname)) {
     e.respondWith(
       fetch(req)
         .then((res) => {
@@ -85,7 +88,8 @@ self.addEventListener("fetch", (e) => {
 
   // 同源 HTML 页面：network-first + 缓存兜底（保证用户总能拿到最新版页面，
   // 修旧缓存返回过期页面的坑；离线时仍可看上次数据）
-  const isPage = /(^\/$|\.html?$)/.test(url.pathname);
+  // （以 / 结尾或 .html 都算页面，兼容根路径与 /<repo>/ 子路径首页）
+  const isPage = /\.html?$|\/$/.test(url.pathname);
   if (url.origin === self.location.origin && isPage) {
     e.respondWith(
       fetch(req)
