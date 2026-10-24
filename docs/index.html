@@ -244,25 +244,25 @@ function metaText(){
   return `数据时间：${fmtTs(state.updatedTs)} · 共 ${state.rows.length} 只 · ${suffix}`;
 }
 
-// 模式探测：有 API（本地/沙箱实时服务）优先 API；GitHub Pages 无 API → 静态 JSON
+// 模式探测：API 与静态数据并行探测，API 优先、静态兜底（GitHub Pages 无 API）
+// （并行而非串行：CDN 首次分发可能慢，串行探测易让降级超时静默失败）
 async function detectMode(){
-  try{
-    const s = await getJSON("/api/summary", {}, 6000);
-    if (s && typeof s.total === "number"){ state.mode = "api"; }
-  }catch(e){
-    try{
-      const s = await getJSON("/data/snapshot.json", {}, 10000);
-      if (s && s.items) state.mode = "static";
-    }catch(e2){}
-  }
-  if (state.mode === "static"){
+  const [apiR, staticR] = await Promise.allSettled([
+    getJSON("/api/summary", {}, 8000),
+    getJSON("/data/snapshot.json", {}, 20000)
+  ]);
+  if (apiR.status === "fulfilled" && apiR.value && typeof apiR.value.total === "number"){
+    state.mode = "api";
+  } else if (staticR.status === "fulfilled" && staticR.value && staticR.value.items){
+    state.mode = "static";
     const b = document.getElementById("refreshBtn");
     b.textContent = "重新载入";
     try{
-      const h = await getJSON("/data/history.json", {}, 20000);
+      const h = await getJSON("/data/history.json", {}, 30000);
       state.hist = h.series || {}; state.histTs = Date.now()/1000;
     }catch(e){}
   }
+  // 两者皆败：保持初值，由 load() 统一报错（附自救指引）
 }
 
 async function load(){
