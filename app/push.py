@@ -69,6 +69,7 @@ DEFAULT_CONFIG = {
         "limit_change": {"enabled": True, "threshold": 20.0},
         "premium_watch": {"enabled": True, "threshold": 2.0, "cooldown_min": 60},
         "stale_data": {"enabled": True, "threshold_min": 10},
+        "daily_pick": {"enabled": True},
     },
 }
 
@@ -77,6 +78,7 @@ RULE_TITLES = {
     "limit_change": "配额异动",
     "premium_watch": "溢价关注",
     "stale_data": "停更告警",
+    "daily_pick": "每日精选",
 }
 
 _lock = threading.Lock()
@@ -361,6 +363,48 @@ def evaluate_rules(db, only: str | list[str] | None = None) -> list[dict]:
                          f"（关注线 ±{th:.1f}%）\n"
                          f"> 现价 {r.get('price')} · T-1溢价 {_pct(r.get('premium'))}"),
             })
+
+    # —— 每日精选（系统级，每交易日一次，14:45 收盘前推送） ——
+    if want("daily_pick"):
+        from .pick import evaluate as pick_evaluate
+        state = _load_state()
+        last = state.get("daily_pick:daily") or {}
+        today = _cn_now().strftime("%Y-%m-%d")
+        if last.get("date") != today:
+            best = pick_evaluate(db.latest_quotes())
+            if best:
+                chg = best.get("share_chg_pct")
+                chg_txt = "—" if chg is None else _pct(chg)
+                limit_txt = "不限" if best.get("max_amt") is None \
+                    else f"{best['max_amt'] / 1e4:.1f} 万元"
+                amt = best.get("amount") or 0
+                amt_txt = f"{amt / 1e8:.2f} 亿" if amt >= 1e8 else f"{amt / 1e4:.0f} 万"
+                prem = best["premium"]
+                t1 = best.get("t1_premium")
+                est_nav = best.get("est_nav")
+                if est_nav is None:
+                    r0 = next((x for x in db.latest_quotes()
+                               if x.get("code") == best["code"]), {})
+                    est_nav = r0.get("nav")
+                    nav_label = "T-1 净值"
+                else:
+                    nav_label = "估算净值"
+                alerts.append({
+                    "rule": "daily_pick", "code": best["code"],
+                    "name": best["name"],
+                    "key": "daily_pick:daily", "value": today,
+                    "title": "今日精选",
+                    "text": (f"**今日套利精选** {best['code']} {best['name']}\n"
+                             f"> 估算溢价 <font color=\"{_color(prem)}\">{_pct(prem)}</font>"
+                             f"（T-1 溢价 {_pct(t1)}）\n"
+                             f"> 现价 {best.get('price')} · {nav_label} {est_nav} "
+                             f"· 日成交额 {amt_txt}\n"
+                             f"> 日限额 {limit_txt} · {best.get('sgzt')}\n"
+                             f"> 份额Δ {chg_txt}"
+                             f"{'（<font color=\"warning">拥挤，谨慎</font>）' if best.get('crowded') else ''}\n"
+                             f"> 全市场 {best.get('passed')} 只过五关，此票排名第一\n"
+                             f"> 操作：14:30 后复核溢价 → 15:00 前申购 → T+2 开盘卖出"),
+                })
 
     # —— 停更告警（系统级） ——
     if want("stale_data"):
