@@ -18,9 +18,8 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-import httpx
-
 from .config import UA, HTTP_TIMEOUT, LIMITS_FETCH_CONCURRENCY
+from .http import get as http_get
 
 log = logging.getLogger("lof.limits")
 
@@ -53,8 +52,7 @@ def fetch_purchase_limit(code: str) -> dict | None:
     last_err: Exception | None = None
     for attempt in range(2):
         try:
-            r = httpx.get(url, headers=_HEADERS, timeout=HTTP_TIMEOUT,
-                          follow_redirects=True)
+            r = http_get(url, headers=_HEADERS, timeout=HTTP_TIMEOUT)
             if r.status_code != 200:
                 raise RuntimeError(f"HTTP {r.status_code}")
             d = parse_purchase_block(r.text)
