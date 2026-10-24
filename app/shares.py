@@ -4,8 +4,10 @@
 比溢价率更领先，也是判断"还能不能上车"的依据。
 
 数据源：
-1. 深交所官网 ShowReport（CATALOGID=1000_lf）：一次拉全量上市基金，
-   含全部深市 LOF（16xxxx，285 只）的"当前规模(份)"——免费、无需 key
+1. 深交所官网 ShowReport（CATALOGID=1000_lf）JSON 变体：分页拉全量上市基金，
+   含全部深市 LOF（16xxxx，285 只）的"当前规模"——免费、无需 key、无重依赖
+   （xlsx 老路径需 pandas/openpyxl，云端 requirements 不含，已弃用；
+   dqgm 单位为万份，×1e4 归一为"份"）
 2. 上交所官网 LOFGMTJ（query.sse.com.cn，sqlId=COMMON_SSE_SJ_JJSJ_JJGM_LOFGMTJ_L）：
    一次拉全量沪市 LOF（50xxxx/506xxx，119 只）的"基金规模(万份)"，
    支持历史任意交易日回查，收盘清算后发布——免费、无需 key
@@ -13,21 +15,18 @@
    注意 fundf10 对高频 IP 会返回空 body，调用方需容错
 """
 from __future__ import annotations
-import io
 import json
 import logging
 import re
 import time
-import warnings
 
-import requests
+import httpx
 
 from .config import UA
 
 log = logging.getLogger("lof.shares")
 
-_SZSE_URL = "https://fund.szse.cn/api/report/ShowReport"
-_SZSE_PARAMS = {"SHOWTYPE": "xlsx", "CATALOGID": "1000_lf", "TABKEY": "tab1"}
+_SZSE_URL = "https://fund.szse.cn/api/report/ShowReport/data"
 _SZSE_HEADERS = {
     "Referer": "https://fund.szse.cn/marketdata/fundslist/index.html",
     "User-Agent": UA,
@@ -56,25 +55,46 @@ def _to_float(v) -> float | None:
 
 
 def fetch_szse_shares() -> dict[str, float]:
-    """深交所全量：{code: 份额(份)}。只保留 LOF（基金类别为 LOF）。"""
-    r = requests.get(_SZSE_URL, params={**_SZSE_PARAMS, "random": str(time.time() % 1)},
-                     headers=_SZSE_HEADERS, timeout=45)
-    r.raise_for_status()
-    with warnings.catch_warnings(record=True):
-        warnings.simplefilter("always")
-        import pandas as pd
-        df = pd.read_excel(io.BytesIO(r.content), engine="openpyxl",
-                           dtype={"基金代码": str})
-    df["基金代码"] = df["基金代码"].astype(str).str.strip()
-    # 只取 LOF；接口另含 ETF/封闭式等
-    if "基金类别" in df.columns:
-        df = df[df["基金类别"].astype(str).str.upper() == "LOF"]
+    """深交所全量：{code: 份额(份)}。只保留 LOF（基金类别为 LOF）。
+
+    ShowReport JSON 变体（SHOWTYPE=JSON + selectJjlb=LOF），20 行/页，
+    PAGENO 翻页；dqgm 单位为万份，×1e4 归一为"份"（与 SSE 口径一致）。
+    """
     out: dict[str, float] = {}
-    for _, row in df.iterrows():
-        shares = _to_float(row.get("当前规模(份)"))
-        code = row["基金代码"]
-        if code and shares and shares > 0:
-            out[code] = shares
+    with httpx.Client(timeout=45, headers=_SZSE_HEADERS) as cli:
+        page, pages = 1, 1
+        while page <= pages:
+            params = {
+                "SHOWTYPE": "JSON", "CATALOGID": "1000_lf", "TABKEY": "tab1",
+                "selectJjlb": "LOF", "PAGENO": page,
+                "random": str(time.time() % 1),
+            }
+            r = cli.get(_SZSE_URL, params=params)
+            r.raise_for_status()
+            payload = r.json()
+            if not payload or not isinstance(payload[0], dict) \
+                    or not isinstance(payload[0].get("data"), list):
+                raise ValueError(f"szse json bad payload: {r.text[:80]}")
+            md = payload[0].get("metadata") or {}
+            try:
+                pages = int(md.get("pagecount") or 1)
+            except (TypeError, ValueError):
+                pages = 1
+            for row in payload[0]["data"]:
+                # 双保险：类别过滤 + 行内类别校验
+                if str(row.get("jjlb") or "").upper() != "LOF":
+                    continue
+                m = re.search(r"code=(\d{6})", str(row.get("sys_key") or ""))
+                g = re.search(r">\s*([\d,]+(?:\.\d+)?)\s*</a>",
+                              str(row.get("dqgm") or ""))
+                if not m or not g:
+                    continue
+                shares = _to_float(g.group(1))
+                if shares and shares > 0:
+                    out[m.group(1)] = shares * 1e4
+            page += 1
+    if not out:
+        raise ValueError("szse json empty")
     return out
 
 
@@ -118,10 +138,10 @@ def fetch_sse_shares(trade_date: str = "") -> tuple[str, dict[str, float]]:
         "pageHelp.pageSize": 500, "pageHelp.pageNo": 1,
         "pageHelp.beginPage": 1, "pageHelp.cacheSize": 1,
     }
-    r = requests.get(_SSE_LGM_URL, params=params,
-                     headers=_SSE_LGM_HEADERS, timeout=30)
-    r.raise_for_status()
-    return _parse_sse_lofgm(r.text)
+    with httpx.Client(timeout=30, headers=_SSE_LGM_HEADERS) as cli:
+        r = cli.get(_SSE_LGM_URL, params=params)
+        r.raise_for_status()
+        return _parse_sse_lofgm(r.text)
 
 
 def fetch_em_share(code: str) -> tuple[str, float] | None:
@@ -131,8 +151,9 @@ def fetch_em_share(code: str) -> tuple[str, float] | None:
     故解析做成"结构无关"：找到响应里第一个对象数组，再挑日期+份额字段。
     """
     try:
-        r = requests.get(_EM_JJGM_URL, headers=_EM_HEADERS, timeout=20,
-                         params={"type": "jjgm", "code": code, "page": 1, "per": 5})
+        with httpx.Client(timeout=20, headers=_EM_HEADERS) as cli:
+            r = cli.get(_EM_JJGM_URL,
+                        params={"type": "jjgm", "code": code, "page": 1, "per": 5})
         txt = r.text.strip()
         m = re.search(r"=\s*(\{.*\})\s*;?\s*$", txt, re.S)
         if not m:
