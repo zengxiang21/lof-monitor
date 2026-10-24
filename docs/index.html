@@ -100,10 +100,24 @@
     </div>
     <button class="btn" id="refreshBtn">手动刷新</button>
     <button class="btn" id="sharesBtn" title="从深交所/上交所刷新全市场场内份额">刷新份额</button>
+    <button class="btn" id="pushBtn" style="background:#fff;color:var(--accent);border:1px solid var(--accent)" title="企业微信推送记录（未配置 webhook 时为记录模式）">推送记录</button>
     <a class="btn" href="calibration.html" style="background:#fff;color:var(--accent);border:1px solid var(--accent);text-decoration:none" title="估算误差回测与 β 校准面板">误差回测</a>
   </header>
 
   <div class="tabs" id="tabs"></div>
+
+  <div class="card" id="pushCard" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h3 style="margin:0">企业微信推送记录</h3>
+      <span class="meta" id="pushMeta"></span>
+    </div>
+    <div class="tblwrap">
+    <table>
+      <thead><tr><th>时间</th><th>规则</th><th>基金</th><th>内容</th><th>状态</th></tr></thead>
+      <tbody id="pushBody"></tbody>
+    </table>
+    </div>
+  </div>
 
   <div class="card">
     <div class="swipe" id="swipe">← 左右滑动查看全部列 →</div>
@@ -654,6 +668,42 @@ async function startSharesRefresh(){
   }
 }
 document.getElementById("sharesBtn").onclick = startSharesRefresh;
+
+// ---------- 推送记录 ----------
+const PUSH_RULE_NAMES = {share_surge:"份额异动", limit_change:"配额异动",
+                         premium_watch:"溢价关注", stale_data:"数据停更"};
+document.getElementById("pushBtn").onclick = async () => {
+  const card = document.getElementById("pushCard");
+  const meta = document.getElementById("pushMeta");
+  const body = document.getElementById("pushBody");
+  if (!card.hidden){ card.hidden = true; return; }
+  card.hidden = false;
+  meta.textContent = "加载中…";
+  body.innerHTML = "";
+  try {
+    const d = await getJSON(`data/push_records.json?t=${Date.now()}`, {}, 15000);
+    if (!d.items || !d.items.length){
+      meta.textContent = "暂无推送记录";
+      return;
+    }
+    meta.textContent = `共 ${d.total} 条 · 生成于 ${d.generated_at}`;
+    for (const it of d.items){
+      const tr = document.createElement("tr");
+      const t = it.ts ? new Date(it.ts * 1000) : null;
+      const time = t ? t.toLocaleString("zh-CN", {hour12:false}) : (it.time || "—");
+      const rule = PUSH_RULE_NAMES[it.rule] || it.rule || "—";
+      const fund = it.code ? `${it.code} ${it.name || ""}` : "系统";
+      const status = it.sent
+        ? '<span class="up">已发送</span>'
+        : '<span class="flat">记录</span>';
+      tr.innerHTML = `<td>${time}</td><td>${rule}</td><td>${fund}</td>` +
+        `<td>${(it.title || "").replace(/</g, "&lt;")}</td><td>${status}</td>`;
+      body.appendChild(tr);
+    }
+  }catch(e){
+    meta.textContent = "加载失败：" + e.message;
+  }
+};
 
 (async()=>{
   await detectMode();
