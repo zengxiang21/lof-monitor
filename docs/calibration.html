@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f8f9fb">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23185FA5'/%3E%3Cpath d='M7 21l5-6 4 3 6-8' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="LOF套利监控">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="/manifest.webmanifest">
 <title>估算误差回测 · β 校准 — LOF 套利监控</title>
 <style>
   :root{
@@ -76,7 +76,7 @@
 <body>
 <div class="wrap">
   <header>
-    <a class="btn ghost" href="index.html">← 返回监控台</a>
+    <a class="btn ghost" href="/">← 返回监控台</a>
     <h1>估算误差回测 · β 校准</h1>
     <div class="meta" id="meta">加载中…</div>
   </header>
@@ -202,7 +202,7 @@ async function drill(code){
   let beta=null, level=null, n=null, recent=[];
   if(MODE === "api"){
     try{
-      const h = await getJSON(`api/lof/${code}/history?limit=5`);
+      const h = await getJSON(`/api/lof/${code}/history?limit=5`);
       const c = h.calibration || {};
       beta = c.beta; level = c.level; n = c.n; recent = c.recent || [];
     }catch(e){
@@ -231,12 +231,12 @@ async function drill(code){
 
 async function load(){
   try{
-    CAL = await getJSON("api/calibration", {}, 15000);
+    CAL = await getJSON("/api/calibration", {}, 15000);
     MODE = "api";
   }catch(e){
     // 静态模式（GitHub Pages / 离线）：读导出 JSON
     try{
-      CAL = await getJSON("data/calibration.json?t="+Date.now(), {}, 15000);
+      CAL = await getJSON("/data/calibration.json?t="+Date.now(), {}, 15000);
       RECENT = CAL.recent || {};
       MODE = "static";
     }catch(e2){
