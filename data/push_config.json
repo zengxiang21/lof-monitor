@@ -1,0 +1,22 @@
+{
+  "webhook": "",
+  "rules": {
+    "share_surge": {
+      "enabled": true,
+      "threshold": 5.0
+    },
+    "limit_change": {
+      "enabled": true,
+      "threshold": 20.0
+    },
+    "premium_watch": {
+      "enabled": true,
+      "threshold": 2.0,
+      "cooldown_min": 60
+    },
+    "stale_data": {
+      "enabled": true,
+      "threshold_min": 10
+    }
+  }
+}
