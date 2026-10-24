@@ -20,11 +20,15 @@
   }
 }
 
-记录模式：未配置 webhook 时，"将发送"的消息全部追加到 data/push_records.jsonl
+记录模式：未配置 webhook 时，"将发送"的消息全部追加到 push_records.jsonl
 （同时作为推送历史供面板展示）；配置 webhook 后立即真实发送。
 用户醒来后在面板填入 webhook 一键启用，无需改代码。
 
-去重：data/push_state.json 记录 规则:代码 → 上次告警值，只有值变化才再告警；
+云端（GitHub Actions）：webhook 从环境变量 LOF_WECOM_WEBHOOK 读取
+（仓库 Secret 注入），配置文件/记录/状态目录用 set_data_dir() 指向
+data/store/，随 store 一起提交，静态面板可读。
+
+去重：push_state.json 记录 规则:代码 → 上次告警值，只有值变化才再告警；
 stale_data 按 告警/恢复 状态翻转去重。
 
 企业微信群机器人安全限制：每分钟最多 20 条，内置滑动窗口限速。
@@ -33,13 +37,19 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import threading
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import httpx
-
 from .config import DATA_DIR
+from .http import post as http_post
+
+
+def _cn_now() -> datetime:
+    """北京时间（云端 Actions 运行于 UTC，交易时段判断必须换算）。"""
+    return datetime.now(timezone(timedelta(hours=8)))
 
 log = logging.getLogger("lof.push")
 
@@ -75,6 +85,20 @@ _send_ts: list[float] = []   # 限速滑动窗口
 
 # ---------- 配置 ----------
 
+def set_data_dir(base: str | Path) -> None:
+    """重定向配置文件/记录/状态目录（云端指向 data/store/）。"""
+    global CONFIG_PATH, RECORDS_PATH, STATE_PATH
+    base = Path(base)
+    CONFIG_PATH = base / "push_config.json"
+    RECORDS_PATH = base / "push_records.jsonl"
+    STATE_PATH = base / "push_state.json"
+
+
+def _env_webhook() -> str:
+    """云端 Secret 注入的 webhook（优先于配置文件）。"""
+    return (os.environ.get("LOF_WECOM_WEBHOOK") or "").strip()
+
+
 def _deep_merge(base: dict, override: dict) -> dict:
     out = dict(base)
     for k, v in (override or {}).items():
@@ -107,14 +131,18 @@ def save_config(cfg: dict) -> dict:
 
 
 def webhook_configured(cfg: dict | None = None) -> bool:
+    if _env_webhook():
+        return True
     cfg = cfg or load_config()
     return bool((cfg.get("webhook") or "").strip())
 
 
 def masked_webhook(cfg: dict | None = None) -> str:
     """webhook 脱敏展示（只留首段与尾段）。"""
-    cfg = cfg or load_config()
-    url = (cfg.get("webhook") or "").strip()
+    url = _env_webhook()
+    if not url:
+        cfg = cfg or load_config()
+        url = (cfg.get("webhook") or "").strip()
     if not url:
         return ""
     if len(url) <= 30:
@@ -203,16 +231,18 @@ def _rate_ok() -> bool:
 
 def send_markdown(content: str) -> tuple[bool, str]:
     """发送 markdown 到企业微信群机器人。返回 (成功, 错误信息)。"""
-    cfg = load_config()
-    url = (cfg.get("webhook") or "").strip()
+    url = _env_webhook()
+    if not url:
+        cfg = load_config()
+        url = (cfg.get("webhook") or "").strip()
     if not url:
         return False, "未配置 webhook（记录模式）"
     if not _rate_ok():
         return False, "触发分钟级限速，本分钟跳过"
     try:
-        resp = httpx.post(url, json={"msgtype": "markdown",
-                                     "markdown": {"content": content}},
-                          timeout=SEND_TIMEOUT)
+        resp = http_post(url, json_body={"msgtype": "markdown",
+                                         "markdown": {"content": content}},
+                         timeout=SEND_TIMEOUT)
         data = {}
         try:
             data = resp.json()
@@ -335,9 +365,8 @@ def evaluate_rules(db, only: str | list[str] | None = None) -> list[dict]:
     # —— 停更告警（系统级） ——
     if want("stale_data"):
         from .calendar import is_market_open, is_trade_day
-        from datetime import datetime
         th_min = float(rules["stale_data"].get("threshold_min", 10))
-        now = datetime.now()
+        now = _cn_now()
         if is_trade_day(db, now.date()) and is_market_open(now):
             ts = db.latest_ts() or 0
             stale_min = (time.time() - ts) / 60 if ts else 999
