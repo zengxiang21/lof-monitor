@@ -177,25 +177,17 @@ def create_app(db) -> FastAPI:
                 "updated_ts": db.latest_ts(), "items": rows[:limit]}
 
     @app.get("/api/lof/{code}/history")
-    def api_history(code: str, limit: int = Query(120, le=500),
-                    days: int | None = Query(None, ge=1, le=365)):
+    def api_history(code: str, limit: int = Query(120, le=500)):
         cal = db.beta_map().get(code)
         recent = db.est_error_recent(code, 5)
-        out = {"code": code,
-               "items": list(reversed(db.quote_history(code, limit))),
-               "calibration": {
-                   "beta": (cal or {}).get("beta"),
-                   "level": (cal or {}).get("level"),
-                   "n": (cal or {}).get("n"),
-                   "recent": [{"date": r["date"], "err_pct": r["err_pct"],
-                               "est_source": r.get("est_source")} for r in recent],
-               }}
-        if days:  # 多日回看：区间降采样 + 统计（points 转紧凑数组，与静态 JSON 对齐）
-            rg = db.quote_history_range(code, days)
-            rg["points"] = [[p["ts"], p["price"], p["premium"], p["est_premium"]]
-                            for p in rg["points"]]
-            out["range"] = rg
-        return out
+        return {"code": code, "items": list(reversed(db.quote_history(code, limit))),
+                "calibration": {
+                    "beta": (cal or {}).get("beta"),
+                    "level": (cal or {}).get("level"),
+                    "n": (cal or {}).get("n"),
+                    "recent": [{"date": r["date"], "err_pct": r["err_pct"],
+                                "est_source": r.get("est_source")} for r in recent],
+                }}
 
     @app.get("/api/calibration")
     def api_calibration():
