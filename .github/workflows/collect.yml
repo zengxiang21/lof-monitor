@@ -63,12 +63,19 @@ jobs:
         if: steps.tick.outputs.dirty == 'true'
         run: python scripts/export_static.py --store --out docs/data
 
+      - name: 同步页面文件到发布目录（Pages 源为 docs/，网页改动需同步）
+        if: steps.tick.outputs.dirty == 'true'
+        run: |
+          cp web/index.html web/calibration.html web/sw.js docs/
+          cp web/manifest.webmanifest docs/ 2>/dev/null || true
+          cp web/icon-192.png web/icon-512.png web/icon-maskable.png web/icon.svg docs/ 2>/dev/null || true
+
       - name: 提交并推送（触发 Pages 自动部署）
         if: steps.tick.outputs.dirty == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/store docs/data
+          git add data/store docs
           if git diff --cached --quiet; then
             echo "无变化，跳过提交"
           else
