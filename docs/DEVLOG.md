@@ -524,3 +524,83 @@
 - verify_web 后端全过；verify_browser 桌面端全过
 - 经验：SW 激活后 Playwright route 拦不住 SW 发出的请求，测接口失败
   分支必须 block service worker
+
+## 2026-10-24 多日历史回看（7/30/90 天）+ 静态模式修复
+
+### 功能
+- 基金详情行新增 7/30/90 天区间回看 tabs：SVG 折线（红涨绿跌、零轴、
+  均值虚线、最多 5 个时间刻度）+ 统计条（区间最高/最低/平均/振幅/最新/
+  数据窗口与实际快照数）
+- 后端 `quote_history_range(code, days, max_pts)`：区间查询 + 分桶降采样
+  （≤1 天五分钟桶、≤7 天小时桶、≥30 天日桶，桶末点取值，超长再步长
+  抽稀）+ stats（prem_max/min/avg/last、n、first/last_ts）+ data_days
+  （北京自然日去重，用于"已累积 N 天"提示）
+- API `?days=` 参数与静态 `history_ranges.json` 双通道，points 统一为
+  紧凑数组 `[ts, price, premium, est_premium]`
+- 数据仅 11 天时 90 天自动降级为 30 天内容，提示"继续累积后自动可见"
+
+### 修复的 bug
+- **静态模式详情行全挂**：insertDetail 原先任何模式都请求
+  `api/lof/{code}/history`，GitHub Pages 静态模式下必然 404 → 详情行
+  永远只显示"历史数据加载失败"，多日回看 tabs 根本渲染不出来。
+  修复：static 分支从 history.json 紧凑序列取数，并用 snapshot 当前行
+  丰富末点（name/est_nav/est_source/est_premium/price/amount）+ β 校准
+  优雅降级（无 level/n 时不显示）
+- betaTag 在缺 level/n 时显示"组级 n=0"误导信息 → 改为有条件渲染
+- 多日图表 SVG=0：API 返回 dict 列表而前端期望数组 → web.py 将 points
+  转为紧凑数组（与静态 JSON 对齐）
+
+### 测试（全部实测通过）
+- API 模式（8130）：7 天折线 379 字符、30 天 133、90 天降级正常、
+  详情估算行含"组级 n=1"完整校准、无 pageerror
+- 静态模式子路径环境（http.server 8131 父目录 /lof-monitor/）：
+  390 行、7 天折线 370 字符、30/90 天图表、校准页 200、无 pageerror
+  （404 均为 detectMode 主动探测 api/summary 的预期行为）
+- 线上 GitHub Pages：v15 部署后 static 模式、390 行、三日图表、
+  校准页全部实测通过
+- sw.js v14→v15；sync_pages.sh 上传 2 文件（index.html+sw.js）
+
+### 经验
+- 静态/API 双模式的功能，新增数据通路必须两条都测：本地根路径测试
+  发现不了子路径 bug，API 模式测试发现不了静态模式 bug
+- 测试脚本要先点基金行展开详情（rc- 容器在展开行里生成），且图表
+  用 <path> 不是 <polyline>
+
+---
+
+## 2026-10-24 云端化 + 企业微信推送（电脑关机也能更新）
+
+### 架构
+- GitHub Actions collect.yml 六路 cron（盘中行情 */5、限额、份额、净值、
+  β 校准）+ workflow_dispatch，数据落 data/store/（JSONL 增量），
+  export_static --store → docs/data/ → commit push → Pages 自动部署
+- 每 cron 追加 push 任务：数据更新即评估推送规则（份额激增/配额异动/
+  溢价关注/数据停更），webhook 经 `secrets.LOF_WECOM_WEBHOOK` 注入，
+  未配置时为记录模式（push_records.jsonl 随 git 提交，Pages 面板可见）
+
+### 关键修复
+- **东财 push2 云端限流**：GitHub 机房 IP 访问 push2 clist 稳定 502
+  （pz 大小无关，httpx/curl_cffi/curl 皆然）→ 行情源改腾讯 qt.gtimg.cn
+  批量 60 只/批（store.known_codes() 驱动，东财失败自动兜底）
+- **TLS 指纹**：新建 app/http.py 统一客户端（curl_cffi Chrome 指纹优先、
+  httpx 兜底），estimate/nav/limits/shares/quotes 全部切换
+- **SZSE 份额去 pandas**：ShowReport JSON 变体（SHOWTYPE=JSON +
+  selectJjlb=LOF + PAGENO 翻页，dqgm 万份×1e4），requirements-cloud
+  只剩 curl_cffi + httpx
+- **开盘判断**：market_ticked_today 改腾讯指数行情时间戳（字段 30）
+  优先，东财 f86 兜底——周末/节假日自然跳过，免日历
+- **stale_data 时区**：交易时段判断改北京时间（云端 Actions 为 UTC）
+- **Pages 发布目录陷阱**：Pages 源是 main:/docs，web/ 的页面改动不会
+  自动上线 → collect.yml export 后同步 web 页面/图标到 docs/，
+  git add docs（此前推送面板上线后不见，根因即此）
+- **每小时旧自动化误触发**：sync_pages.sh 曾从中转目录覆盖远端 6 个
+  文件（含新 export_static.py 被换回旧版）→ sync_pages.sh/.cmd 已中性化
+
+### 测试（全部实测通过）
+- 最小 venv（仅 curl_cffi+httpx）仿真云端：import 闭包干净，
+  shares(404)/nav(404)/limits(403)/calibrate(339 对误差) 实跑通过
+- 云端 dispatch 五任务 + push 全成功，Pages 自动部署，线上 snapshot
+  为云端新数据；collect,push 组合经 --schedule 本地模拟验证
+  （周末 collect 自动跳过、push 执行、去重生效）
+- 推送面板：本地 Chrome（404 行/48 条记录/展开收起/无真实报错）+
+  线上（pushBtn 就位、push_records.json 200、v16）双通过
