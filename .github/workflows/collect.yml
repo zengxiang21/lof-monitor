@@ -81,6 +81,8 @@ jobs:
             echo "无变化，跳过提交"
           else
             git commit -m "data: 云端采集 $(TZ=Asia/Shanghai date '+%m-%d %H:%M') task=${{ github.event.inputs.task || github.event.schedule }}"
-            git pull --rebase origin main || true
-            git push
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push && break
+              echo "push 重试 $i/3（并发冲突或网络）"; sleep 5
+            done
           fi
