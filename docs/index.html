@@ -743,6 +743,37 @@ async function loadPick(){
       `<div class="meta" style="margin-top:4px">日限额 ${limit} · ${p.sgzt || ""} · 份额Δ ${chgTxt}` +
       (p.crowded ? ` · <span style="color:var(--down)">拥挤信号，谨慎</span>` : "") + `</div>` +
       `<div class="meta" style="margin-top:4px">节奏：14:30 后复核溢价 → 15:00 前申购 → T+2 开盘卖出</div>`;
+    if (p.passed_list && p.passed_list.length > 1){
+      body.insertAdjacentHTML("beforeend",
+        `<div style="margin-top:10px"><a href="javascript:void 0" id="pickToggle" style="color:var(--accent);font-size:13px">展开全部 ${p.passed_list.length} 只过关标的 ▸</a></div>` +
+        `<div id="pickTable" hidden style="margin-top:8px;overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">` +
+        `<thead><tr style="color:var(--sub);text-align:left"><th style="padding:4px 8px">排名</th><th>代码/名称</th><th>溢价</th><th>现价</th><th>成交额</th><th>日限额</th><th>份额Δ</th></tr></thead><tbody></tbody></table></div>`);
+      document.getElementById("pickToggle").onclick = () => {
+        const t = document.getElementById("pickTable");
+        t.hidden = !t.hidden;
+        document.getElementById("pickToggle").textContent =
+          t.hidden ? `展开全部 ${p.passed_list.length} 只过关标的 ▸` : "收起 ▾";
+        if (!t.hidden && !t.dataset.filled){
+          const tb = t.querySelector("tbody");
+          p.passed_list.forEach((x, i) => {
+            const amt = x.amount >= 1e8 ? (x.amount / 1e8).toFixed(2) + " 亿" : Math.round(x.amount / 1e4) + " 万";
+            const lim = x.max_amt == null ? "不限" : (x.max_amt / 1e4).toFixed(0) + " 万";
+            const chg = x.share_chg_pct == null ? "—" : ((x.share_chg_pct > 0 ? "+" : "") + x.share_chg_pct.toFixed(2) + "%");
+            const tr = document.createElement("tr");
+            tr.style.borderTop = "0.5px solid var(--color-border-tertiary)";
+            tr.innerHTML = `<td style="padding:5px 8px;color:var(--sub)">${i + 1}</td>` +
+              `<td style="padding:5px 8px">${x.code} ${x.name || ""}</td>` +
+              `<td class="up" style="padding:5px 8px;font-weight:500">+${x.premium.toFixed(2)}%</td>` +
+              `<td style="padding:5px 8px">${x.price == null ? "—" : x.price}</td>` +
+              `<td style="padding:5px 8px">${amt}</td><td style="padding:5px 8px">${lim}</td>` +
+              `<td class="${(x.share_chg_pct || 0) > 0 ? "up" : "down"}" style="padding:5px 8px">${chg}` +
+              (x.crowded ? ` <span style="color:var(--down);font-size:12px">拥挤</span>` : "") + `</td>`;
+            tb.appendChild(tr);
+          });
+          t.dataset.filled = "1";
+        }
+      };
+    }
   }catch(e){
     document.getElementById("pickMeta").textContent = "加载失败";
   }
