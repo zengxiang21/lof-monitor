@@ -37,8 +37,23 @@ def _nav_stale(nav_date: str | None) -> bool:
     return (datetime.strptime(_cn_today(), "%Y-%m-%d").date() - d).days > NAV_STALE_DAYS
 
 
+def _brief(item: dict) -> dict:
+    r = item["row"]
+    return {
+        "code": r["code"], "name": r.get("name"),
+        "price": r.get("price"),
+        "premium": round(item["prem"], 2),
+        "t1_premium": r.get("premium"),
+        "est_nav": r.get("est_nav"),
+        "amount": r.get("amount"), "max_amt": r.get("max_amt"),
+        "sgzt": r.get("sgzt"),
+        "share_chg_pct": item["chg"], "crowded": item["crowded"],
+        "score": round(item["score"], 2),
+    }
+
+
 def evaluate(rows: list[dict]) -> dict | None:
-    """五关筛选 + 排序，返回 TOP1（无达标返回 None）。"""
+    """五关筛选 + 排序，返回 TOP1 及完整过关榜单（无达标返回 None）。"""
     passed: list[dict] = []
     for r in rows:
         prem = r.get("est_premium")
@@ -79,6 +94,7 @@ def evaluate(rows: list[dict]) -> dict | None:
         "share_chg_pct": best["chg"], "crowded": best["crowded"],
         "nav_date": r.get("nav_date"),
         "passed": len(passed),
+        "passed_list": [_brief(x) for x in passed],
         "thresholds": {"premium": MIN_PREMIUM, "amount": MIN_AMOUNT,
                        "limit": MIN_LIMIT, "share_crowd": SHARE_CROWD},
     }
