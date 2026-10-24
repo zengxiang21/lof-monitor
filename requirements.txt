@@ -1,0 +1,7 @@
+# LOF 套利监控 P0 依赖
+akshare>=1.16
+fastapi>=0.115
+uvicorn[standard]>=0.30
+apscheduler>=3.10,<4
+httpx>=0.27
+pandas>=2.0
