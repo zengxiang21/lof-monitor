@@ -7,6 +7,7 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: 探测深交所主域份额接口
         run: |
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
@@ -57,41 +58,67 @@ jobs:
               except Exception as e:
                   print(f"pz={pz}: EXC {type(e).__name__}: {e}")
           EOF
-      - name: curl_cffi vs curl 子进程 全端点对比
+      - name: 行情源可行性（pz 上限 / ulist / 腾讯批量）
         run: |
           pip install -q curl_cffi
           python - <<'EOF'
-          import json, subprocess
+          from curl_cffi import requests as creq
           UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                 "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
-          targets = [
-            ("push2-clist-pz100", "https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=100&po=1&np=1&fltt=2&invt=2&fid=f3&fs=b:MK0021,b:MK0022,b:MK0023,b:MK0024&fields=f12,f14,f2,f3,f5,f6", "https://quote.eastmoney.com/"),
-            ("push2-clist-pz1000", "https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=1000&po=1&np=1&fltt=2&invt=2&fid=f3&fs=b:MK0021,b:MK0022,b:MK0023,b:MK0024&fields=f12,f14,f2,f3,f5,f6", "https://quote.eastmoney.com/"),
-            ("FundGuZhi估值", "https://api.fund.eastmoney.com/FundGuZhi/GetFundGZList?type=8&sort=3&orderType=desc&canbuy=0&pageIndex=1&pageSize=3&_=1", "https://fund.eastmoney.com/"),
-            ("fundf10净值", "https://fundf10.eastmoney.com/F10DataApi.aspx?type=lsjz&code=160105&pageIndex=1&pageSize=3", "https://fundf10.eastmoney.com/"),
-            ("szse份额JSON", "https://fund.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1000_lf&TABKEY=tab1&selectJjlb=LOF&PAGENO=1", "https://fund.szse.cn/marketdata/fundslist/index.html"),
-            ("sse份额", "https://query.sse.com.cn/commonQuery.do?jsonCallBack=cb&isPagination=true&sqlId=COMMON_SSE_SJ_JJSJ_JJGM_LOFGMTJ_L&PRODUCT_TYPE=11,14,15&SEARCH_DATE=&type=inParams&pageHelp.pageSize=500&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1", "https://www.sse.com.cn/market/funddata/volumn/lofvolumn/"),
-            ("腾讯行情", "https://qt.gtimg.cn/q=sh160105,sz160106", ""),
-          ]
-          from curl_cffi import requests as creq
-          for name, url, ref in targets:
-              hdr = {"User-Agent": UA}
-              if ref:
-                  hdr["Referer"] = ref
-              # curl_cffi Chrome 伪装
+          REF = {"Referer": "https://quote.eastmoney.com/", "User-Agent": UA}
+          FS = "b:MK0021,b:MK0022,b:MK0023,b:MK0024"
+          # 1) pz 上限
+          for pz in (3, 10, 20, 50, 80, 100):
               try:
-                  r = creq.get(url, headers=hdr, impersonate="chrome", timeout=20)
-                  print(f"[cffi ] {name}: HTTP {r.status_code}, {len(r.text)}B, head={r.text[:80]!r}")
+                  r = creq.get("https://push2.eastmoney.com/api/qt/clist/get",
+                              params={"pn":1,"pz":pz,"po":1,"np":1,"fltt":2,"invt":2,
+                                      "fid":"f3","fs":FS,"fields":"f12,f14,f2,f3,f5,f6"},
+                              headers=REF, impersonate="chrome", timeout=20)
+                  n = -1
+                  try:
+                      n = len(((r.json().get("data") or {}).get("diff")) or [])
+                  except Exception:
+                      pass
+                  print(f"clist pz={pz}: HTTP {r.status_code}, diff={n}")
               except Exception as e:
-                  print(f"[cffi ] {name}: EXC {type(e).__name__}: {str(e)[:100]}")
-              # curl 子进程
+                  print(f"clist pz={pz}: EXC {e}")
+          # 2) ulist 显式 secids（store 里的深/沪 LOF 代码各取样例）
+          import sqlite3, os, glob
+          codes = []
+          for p in sorted(glob.glob("data/store/*.jsonl")):
+              pass
+          # 从 state.json 拿全部代码
+          import json
+          st = json.load(open("data/store/state.json", encoding="utf-8"))
+          funds = st.get("funds") or st
+          codes = sorted(funds.keys())
+          print("state codes:", len(codes))
+          secids = []
+          for c in codes:
+              secids.append(("1." if c[0] in "56" else "0.") + c)
+          for chunk_i in range(0, min(len(secids), 400), 100):
+              chunk = secids[chunk_i:chunk_i+100]
               try:
-                  cmd = ["curl", "-sL", "--max-time", "20", "-H", f"User-Agent: {UA}"]
-                  if ref:
-                      cmd += ["-H", f"Referer: {ref}"]
-                  cmd.append(url)
-                  out = subprocess.run(cmd, capture_output=True, text=True, timeout=30).stdout
-                  print(f"[curl ] {name}: {len(out)}B, head={out[:80]!r}")
+                  r = creq.get("https://push2.eastmoney.com/api/qt/ulist.np/get",
+                              params={"fltt":2,"secids":",".join(chunk),
+                                      "fields":"f12,f14,f2,f3,f5,f6"},
+                              headers=REF, impersonate="chrome", timeout=20)
+                  n = -1
+                  try:
+                      n = len(((r.json().get("data") or {}).get("diff")) or [])
+                  except Exception:
+                      pass
+                  print(f"ulist[{chunk_i}:{chunk_i+100}]: HTTP {r.status_code}, diff={n}")
               except Exception as e:
-                  print(f"[curl ] {name}: EXC {type(e).__name__}: {str(e)[:100]}")
+                  print(f"ulist[{chunk_i}]: EXC {e}")
+          # 3) 腾讯批量 60 只
+          try:
+              q = ",".join(("sh" if c[0] in "56" else "sz") + c for c in codes[:60])
+              r = creq.get(f"https://qt.gtimg.cn/q={q}", headers={"User-Agent": UA},
+                           impersonate="chrome", timeout=20)
+              r.encoding = "gbk"
+              lines = [ln for ln in r.text.split(";") if "=" in ln]
+              print(f"tencent batch60: HTTP {r.status_code}, rows={len(lines)}, head={r.text[:60]!r}")
+          except Exception as e:
+              print(f"tencent: EXC {e}")
           EOF
