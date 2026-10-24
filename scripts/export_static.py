@@ -34,8 +34,22 @@ RANGES = (7, 30, 90)
 
 # ---------- 输出写入（两模式共用） ----------
 
+def _read_jsonl(path: Path, limit: int = 100) -> list[dict]:
+    """读 JSONL 尾部 N 行（容错坏行）。"""
+    if not path.exists():
+        return []
+    out: list[dict] = []
+    for ln in path.read_text(encoding="utf-8").splitlines()[-limit:]:
+        try:
+            out.append(json.loads(ln))
+        except Exception:  # noqa: BLE001
+            continue
+    return out
+
+
 def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
-                   series: dict, ranges: dict, calibration: dict) -> dict:
+                   series: dict, ranges: dict, calibration: dict,
+                   push_items: list[dict] | None = None) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     generated_at = datetime.now(timezone(timedelta(hours=8))).isoformat(timespec="seconds")
     counts: dict[str, int] = {}
@@ -73,6 +87,12 @@ def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
     (out_dir / "history_ranges.json").write_text(
         json.dumps({"updated_ts": updated_ts, "ranges": ranges},
                    ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    if push_items is not None:
+        (out_dir / "push_records.json").write_text(
+            json.dumps({"generated_at": generated_at,
+                        "total": len(push_items),
+                        "items": list(reversed(push_items))},
+                       ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     size = sum(p.stat().st_size for p in out_dir.glob("*.json"))
     return {"ok": True, "total": len(rows), "series": len(series), "bytes": size}
 
@@ -102,7 +122,9 @@ def _export_db(out_dir: Path) -> dict:
                     "stats": rg["stats"], "data_days": rg["data_days"],
                 }
     calibration = _calibration_from_db(db, rows)
-    return _write_outputs(out_dir, rows, db.latest_ts(), series, ranges, calibration)
+    push_items = _read_jsonl(DATA_DIR / "push_records.jsonl")
+    return _write_outputs(out_dir, rows, db.latest_ts(), series, ranges,
+                          calibration, push_items)
 
 
 def _calibration_from_db(db, rows: list[dict]) -> dict:
@@ -180,7 +202,9 @@ def _export_store(out_dir: Path) -> dict:
                     "stats": rg["stats"], "data_days": rg["data_days"],
                 }
     calibration = _calibration_from_store(store, rows)
-    return _write_outputs(out_dir, rows, store.latest_ts(), series, ranges, calibration)
+    push_items = _read_jsonl(store.root / "push_records.jsonl")
+    return _write_outputs(out_dir, rows, store.latest_ts(), series, ranges,
+                          calibration, push_items)
 
 
 def _calibration_from_store(store, rows: list[dict]) -> dict:
