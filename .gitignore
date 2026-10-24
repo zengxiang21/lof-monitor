@@ -20,9 +20,3 @@ bisect_*.py
 *_check.js
 .workbuddy-ai/
 .online_url
-
-# 测试产物（不入库）
-pages-test/
-*.test.png
-static_*.png
-online_*.png
