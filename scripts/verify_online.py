@@ -35,28 +35,26 @@ def main():
         # 2. 今日精选卡片
         check("今日精选卡片", "今日套利精选" in body or "今日精选" in body)
         check("数据时间与只数", "数据时间" in body and "共" in body)
+        check("精选含净收益", "预估净收益" in body)
+        check("信号战绩卡片", "信号战绩" in body)
 
         # 3. 推送记录面板按钮
         btns = [b2.inner_text() for b2 in pg.query_selector_all("button")]
         check("推送记录按钮", any("推送" in t for t in btns), str([t for t in btns if "推送" in t])[:60])
+        check("暗色模式按钮", any("🌙" in t or "☀️" in t for t in btns))
 
-        # 4. 关键 DOM
-        pick_html = pg.eval_on_selector("#pickCard", "el => el ? el.outerHTML.slice(0, 300) : 'MISSING'") \
-            if pg.query_selector("#pickCard") else "MISSING"
-        check("今日精选卡片DOM", pick_html != "MISSING", pick_html[:80])
-        check("过关切换按钮", pg.query_selector("#pickToggle") is not None)
+        # 4. 自选星标列 + 关注 chip
+        check("星标列存在", pg.eval_on_selector("#tbody",
+              "e => e.closest('table').querySelectorAll('thead tr th').length") == 13)
+        check("关注筛选chip", pg.eval_on_selector("#tabs button", "e => e.textContent").startswith("☆ 关注"))
 
-        # 5. 展开全部过关标的
-        tgl = pg.query_selector("#pickToggle")
-        if tgl:
-            tgl.click()
-            time.sleep(1)
-            tbl = pg.query_selector("#pickTable")
-            rows = pg.eval_on_selector("#pickTable", "e => e.querySelectorAll('tr').length")
-            check("过关榜单展开", tbl is not None and not tbl.is_hidden() and rows >= 2,
-                  f"rows={rows}")
-        else:
-            check("过关榜单展开", False, "无 #pickToggle")
+        # 5. 暗色切换
+        pg.click("#themeBtn")
+        time.sleep(0.4)
+        theme = pg.eval_on_selector("html", "e => e.dataset.theme")
+        check("暗色切换生效", theme == "dark", theme)
+        pg.click("#themeBtn")
+        time.sleep(0.4)
 
         pg.screenshot(path=SHOT, full_page=False)
         b.close()
