@@ -47,6 +47,9 @@
   [data-theme="dark"] .tabs{background:#131722;border-color:var(--line)}
   [data-theme="dark"] .tab.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.4)}
   *{box-sizing:border-box;margin:0;padding:0}
+  /* hidden 属性必须压过作者的 display 规则（如 .sclear/.cardsview 的 grid），
+     否则 JS 里 el.hidden=true 只是设了属性、元素照样渲染 */
+  [hidden]{display:none !important}
   html{-webkit-text-size-adjust:100%}
   body{background:var(--bg);color:var(--text);
        font-family:Inter,-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
@@ -255,6 +258,66 @@
   .kpi .k{font-size:11px;color:var(--sub)}
   .kpi .v{font-size:18px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
 
+  /* —— 表格卡头部：搜索框 + 视图切换 —— */
+  .searchbox{display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;
+             border:1px solid var(--line);border-radius:8px;background:var(--card);
+             transition:border-color .15s,box-shadow .15s}
+  .searchbox:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,78,216,.12)}
+  .searchbox .ico{width:13px;height:13px;color:var(--sub);flex:0 0 auto}
+  .searchbox input{border:none;outline:none;background:transparent;font-family:inherit;
+                   font-size:13px;color:var(--text);width:118px;padding:0;min-width:0}
+  .searchbox input::placeholder{color:var(--sub)}
+  .sclear{border:none;background:var(--hover);color:var(--sub);border-radius:50%;
+          width:16px;height:16px;font-size:11px;line-height:1;cursor:pointer;
+          display:grid;place-items:center;padding:0;flex:0 0 auto;font-family:inherit}
+  .sclear:hover{color:var(--text);background:var(--line)}
+  .vswitch{display:inline-flex;gap:2px;background:#f1f5f9;border:1px solid var(--line);
+           border-radius:8px;padding:2px}
+  [data-theme="dark"] .vswitch{background:#131722}
+  .vswitch button{border:none;background:transparent;border-radius:6px;padding:3px 10px;
+                  font-size:12px;font-family:inherit;color:var(--sub);cursor:pointer;
+                  transition:background .15s,color .15s;white-space:nowrap}
+  .vswitch button:hover{color:var(--text)}
+  .vswitch button.on{background:var(--card);color:var(--text);font-weight:600;
+                     box-shadow:0 1px 3px rgba(15,23,42,.1)}
+  [data-theme="dark"] .vswitch button.on{box-shadow:0 1px 3px rgba(0,0,0,.4)}
+  /* 限额异动角标（涨红跌绿：▲提高 / ▼下调，|变动|≥20% 才显示） */
+  .lchg{display:inline-block;font-size:10px;border-radius:4px;padding:0 4px;margin-left:4px;
+        font-weight:600;vertical-align:1px;font-variant-numeric:tabular-nums}
+  .lchg.up{background:var(--soft-up);color:var(--up)}
+  .lchg.down{background:var(--soft-down);color:var(--down)}
+  /* —— 卡片视图（手机端默认） —— */
+  .cardsview{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));
+             gap:10px;padding:12px 16px 14px}
+  .fcard{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--card);
+         padding:11px 12px;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-width:0;
+         transition:border-color .15s,box-shadow .15s,transform .12s}
+  .fcard:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+  .fcard:active{transform:scale(.99)}
+  .fcard.watched{background:#fffbeb;border-color:#fde68a}
+  [data-theme="dark"] .fcard.watched{background:#241f10;border-color:#4a3f1f}
+  .fc-top{display:flex;align-items:flex-start;gap:8px}
+  .fc-id{min-width:0;flex:1}
+  .fc-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fc-code{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+  .fc-prem{text-align:right;flex:0 0 auto}
+  .fc-prem .v{font-size:20px;font-weight:700;line-height:1.15;letter-spacing:-.01em;
+              font-variant-numeric:tabular-nums}
+  .fc-prem .l{font-size:10px;color:var(--sub)}
+  .fc-top .star{flex:0 0 auto;margin-top:2px}
+  .fc-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;
+          font-variant-numeric:tabular-nums;color:var(--sub)}
+  .fc-row b{color:var(--text);font-weight:600}
+  .fc-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:3px 12px;font-size:12px;
+            font-variant-numeric:tabular-nums}
+  .fc-stats .it{display:flex;justify-content:space-between;gap:8px;min-width:0}
+  .fc-stats .k{color:var(--sub);font-size:11px;white-space:nowrap}
+  .fc-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;
+           font-size:11px;color:var(--sub)}
+  .card-detail{margin:2px -12px -11px;padding:12px;background:var(--bg);
+               border-top:1px dashed var(--line);border-radius:0 0 10px 10px}
+  [data-theme="dark"] .card-detail{background:#131722}
+
   @media (max-width:860px){
     .gates{grid-template-columns:repeat(2,1fr)}
     .pick-stats{grid-template-columns:repeat(4,1fr)}
@@ -282,6 +345,10 @@
     .pick{padding:2px 12px 13px}
     .legend{padding:0 12px}
     #pickTable{padding:0 12px 12px}
+    .card-hd .right{width:100%}
+    .searchbox{flex:1;min-width:0}
+    .searchbox input{width:100%}
+    .cardsview{grid-template-columns:1fr;padding:10px 12px 12px}
   }
   @media (max-width:400px){
     .pick-prem .v{font-size:23px}
@@ -373,7 +440,21 @@
     <div id="perfBody"><div class="meta">加载中…</div></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="tableCard">
+    <div class="card-hd">
+      <h3><span class="bar"></span>全市场实时行情 <span class="meta" id="tblMeta"></span></h3>
+      <div class="right">
+        <div class="searchbox">
+          <svg class="ico" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2.2"/><path d="M20 20l-3.8-3.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          <input id="searchInput" type="text" placeholder="搜索代码 / 名称" autocomplete="off" spellcheck="false">
+          <button id="searchClear" class="sclear" title="清空搜索" hidden>×</button>
+        </div>
+        <div class="vswitch" id="viewSwitch">
+          <button type="button" data-v="table">表格</button>
+          <button type="button" data-v="cards">卡片</button>
+        </div>
+      </div>
+    </div>
     <div class="swipe" id="swipe">← 左右滑动查看全部列 →</div>
     <div class="tblwrap">
     <table id="mainTable">
@@ -388,6 +469,7 @@
       <tbody id="tbody"></tbody>
     </table>
     </div>
+    <div id="cardsView" class="cardsview" hidden></div>
     <div class="empty" id="empty" hidden>暂无数据，点击右上角手动刷新</div>
     <details class="legend">
       <summary>指标说明与使用技巧</summary>
@@ -400,7 +482,10 @@
       <b>点击表头可按该列排序，再点一次切换升/降序</b>（自动记住上次选择）。
       点击行首 <b>☆ 加入自选关注</b>（仅存本机浏览器，不参与推送），关注行高亮，顶部"☆ 关注"chip 可筛选。
       右上角 <b>🌙 切换暗色模式</b>。信号战绩卡展示每日精选的 T+2 真实盈亏回填。
-      精选卡<b>本金框可手动输入投资额</b>（支持 1w=1万 / 1k=1千），实时算出预计净赚并记住。</div>
+      精选卡<b>本金框可手动输入投资额</b>（支持 1w=1万 / 1k=1千），实时算出预计净赚并记住。
+      表格卡右上角<b>搜索框</b>可按代码/名称即时过滤（与分类/关注/五关叠加）；
+      <b>「⚠ 限额异动」chip</b>一键筛出日限额突涨/突降（|变动|≥20%）的标的——限额异动往往是套利窗口开关；
+      <b>「表格/卡片」</b>切换视图（手机端默认卡片，选择会被记住）。</div>
     </details>
   </div>
 </div>
@@ -410,7 +495,11 @@ const CATS = ["全部","原油","有色","海外","港股","科技","A股"];
 let state = { cat:"全部", sort:"premium", sortKey:"premium", sortDir:"desc",
               rows:[], counts:{}, updatedTs:0, open:null, onlyWatch:false,
               mode:"api", hist:{}, histTs:0, notice:null, ranges:null,
-              gates:new Set() };
+              gates:new Set(),
+              query:"",            // 搜索关键词（代码/名称）
+              onlyLimitChg:false,  // 仅看限额异动（|limit_chg_pct| ≥ 20%）
+              view:"table",        // 表格 / 卡片双视图
+              renderedTs:null };   // 已渲染的数据时间戳（无变化则跳过重建）
 
 // —— 套利方案：五关定义（阈值与 app/pick.py 一致，前端实时筛选） ——
 const QDII_CATS = ["海外","原油"];
@@ -573,7 +662,42 @@ function sparkSVG(code){
 function metaText(){
   const suffix = state.notice ||
     (state.mode === "static" ? "云端采集 · 交易日盘中每 5 分钟更新（GitHub Actions）" : "每 60 秒自动刷新");
-  return `数据时间：${fmtTs(state.updatedTs)} · 共 ${state.rows.length} 只 · ${suffix}`;
+  let txt = `数据时间：${fmtTs(state.updatedTs)} · 共 ${state.rows.length} 只 · ${suffix}`;
+  if (state.query) txt += ` · 搜索“${state.query}”命中 ${visibleRows().length} 只`;
+  return txt;
+}
+
+// 表格/卡片共用的可见行计算：分类 → 关注 → 限额异动 → 五关 → 搜索（全部 AND）
+function visibleRows(){
+  const latestNav = latestNavDate();
+  let rows = state.cat==="全部" ? state.rows : state.rows.filter(r=>r.category===state.cat);
+  if (state.onlyWatch) rows = rows.filter(r=>watch.has(r.code));
+  if (state.onlyLimitChg) rows = limitChgRows(rows);
+  if (state.gates.size){
+    rows = rows.filter(r=>[...state.gates].every(k=>GATES.find(g=>g.key===k).test(r, latestNav)));
+  }
+  const q = state.query;
+  if (q) rows = rows.filter(r => r.code.includes(q) || (r.name||"").includes(q));
+  return rows;
+}
+// 限额异动角标（|变动| ≥ 20% 才显示；涨红跌绿，▲提高/▼下调）
+function limitChgBadge(r){
+  const c = r.limit_chg_pct;
+  if (c == null || Math.abs(c) < LIMIT_CHG_MIN) return "";
+  const up = c > 0;
+  return `<span class="lchg ${up?"up":"down"}" title="日限额较上一记录日${up?"提高":"下调"} ${Math.abs(c).toFixed(0)}%（≥${LIMIT_CHG_MIN}% 视为异动，往往是套利窗口开关）">${up?"▲":"▼"}${Math.abs(c).toFixed(0)}%</span>`;
+}
+// 申购状态圆点（表格/卡片共用）
+function sgztDotOf(r){
+  return r.sgzt==="开放申购" ? '<span class="dot open"></span>'
+       : r.sgzt==="暂停申购" ? '<span class="dot pause"></span>'
+       : r.sgzt ? '<span class="dot limit"></span>' : '';
+}
+// 星标切换（表格/卡片共用）
+function toggleWatch(code){
+  if (watch.has(code)) watch.delete(code); else watch.add(code);
+  saveWatch();
+  renderTabs(); renderTable();
 }
 
 // 模式探测：API 与静态数据并行探测，API 优先、静态兜底（GitHub Pages 无 API）
@@ -605,7 +729,11 @@ async function load(){
     if (state.mode === "static"){
       const s = await getJSON(`data/snapshot.json?t=${Date.now()}`, {}, 15000);
       state.rows = s.items || []; state.counts = s.counts || {}; state.updatedTs = s.updated_ts || 0;
-      renderTabs(); renderTable();
+      // 数据未变（updatedTs 与已渲染的一致）则跳过全量重建：404 行 innerHTML
+      // 重建既是 DOM churn 也会打断正在进行的选择/滚动；首轮 renderedTs 为 null 必渲染
+      if (state.renderedTs == null || state.updatedTs !== state.renderedTs){
+        renderTabs(); renderTable(); state.renderedTs = state.updatedTs;
+      }
       loadPerf();               // rows 就绪后再算持有中信号的实时浮动
       if (!state.histTs || Date.now()/1000 - state.histTs > 240){
         try{
@@ -620,9 +748,12 @@ async function load(){
       getJSON("api/summary")
     ]);
     state.rows = list.items; state.counts = sum.counts; state.updatedTs = sum.updated_ts;
-    renderTabs(); renderTable();
+    if (state.renderedTs == null || state.updatedTs !== state.renderedTs){
+      renderTabs(); renderTable(); state.renderedTs = state.updatedTs;
+    }
     loadPerf();               // rows 就绪后再算持有中信号的实时浮动
     // 自愈补采：交易时段数据滞后 >2.5 分钟 → 自动触发一次采集（节流 3 分钟）
+    // （放在渲染守卫之外：停更检测每轮都要跑，与数据是否变化无关）
     maybeAutoCollect();
     // 迷你图数据：每 4 分钟拉一次全市场序列
     if (!state.histTs || Date.now()/1000 - state.histTs > 240){
@@ -642,42 +773,59 @@ async function load(){
   }
 }
 
+// —— 特殊筛选项（与分类可叠加）：自选关注 / 限额异动 ——
+// 限额异动阈值与推送规则 limit_change 默认值一致（|变动%| ≥ 20）
+const LIMIT_CHG_MIN = 20;
+function limitChgRows(base){
+  return base.filter(r => r.limit_chg_pct != null && Math.abs(r.limit_chg_pct) >= LIMIT_CHG_MIN);
+}
+const TOGGLE_FILTERS = [
+  {f:"watch",    on:()=>state.onlyWatch,     toggle:()=>{ state.onlyWatch = !state.onlyWatch; },
+   label:()=>`☆ 关注(${watch.size})`},
+  {f:"limitchg", on:()=>state.onlyLimitChg, toggle:()=>{ state.onlyLimitChg = !state.onlyLimitChg; },
+   label:()=>{ const n = limitChgRows(gateBaseRows()).length; return `⚠ 限额异动${n ? `(${n})` : ""}`; }},
+];
 function renderTabs(){
   const el = document.getElementById("tabs");
   el.innerHTML = "";
-  // 关注筛选chip（置顶）
-  const w = document.createElement("button");
-  w.className = "tab" + (state.onlyWatch ? " on" : "");
-  w.textContent = `☆ 关注(${watch.size})`;
-  w.onclick = ()=>{ state.onlyWatch = !state.onlyWatch; state.open = null; paintTabs(); renderGates(); renderTable(); };
-  el.appendChild(w);
+  const mk = (f, label, onClick) => {
+    const b = document.createElement("button");
+    b.className = "tab"; b.dataset.f = f; b.textContent = label;
+    b.onclick = onClick;
+    el.appendChild(b);
+  };
+  TOGGLE_FILTERS.forEach(t=>{
+    mk(t.f, t.label(), ()=>{ t.toggle(); state.open = null; paintTabs(); renderGates(); renderTable(); });
+  });
   CATS.forEach(c=>{
     const n = c==="全部" ? state.rows.length : (state.counts[c]||0);
-    const b = document.createElement("button");
-    b.className = "tab" + (state.cat===c ? " on" : "");
-    b.textContent = `${c}(${n})`;
-    b.onclick = ()=>{ state.cat = c; state.open = null; paintTabs(); renderGates(); renderTable(); };
-    el.appendChild(b);
+    mk(c, `${c}(${n})`, ()=>{ state.cat = c; state.open = null; paintTabs(); renderGates(); renderTable(); });
   });
+  paintTabs();
   renderGates();   // 关卡实时计数随数据/分类刷新
 }
 
 // tabs 高亮即时跟随点击：只切 class、不重建 DOM
 // （旧实现点击后只调 renderTable，高亮要等 60s 自动刷新才纠正——“有时不跟随”的根因；
-//  不重建 DOM 同时保留手机端 tabs 的横向滚动位置）
+//  不重建 DOM 同时保留手机端 tabs 的横向滚动位置。按 data-f 匹配，新增筛选项无需改这里）
 function paintTabs(){
   const el = document.getElementById("tabs");
-  if (!el || el.children.length !== CATS.length + 1) return;
-  for (let i = 0; i < el.children.length; i++){
-    const on = i === 0 ? state.onlyWatch : state.cat === CATS[i-1];
-    el.children[i].classList.toggle("on", on);
+  if (!el) return;
+  for (const b of el.children){
+    const t = TOGGLE_FILTERS.find(x=>x.f === b.dataset.f);
+    b.classList.toggle("on", t ? t.on() : state.cat === b.dataset.f);
   }
 }
 
 // —— 套利方案：渲染五关卡片（含实时达标计数） ——
+// 关卡计数的口径 = 当前视图子集（分类 + 关注 + 限额异动 + 搜索），
+// 与表格可见行一致；各关独立计数，不受其他已选关卡影响
 function gateBaseRows(){
   let base = state.cat==="全部" ? state.rows : state.rows.filter(r=>r.category===state.cat);
   if (state.onlyWatch) base = base.filter(r=>watch.has(r.code));
+  if (state.onlyLimitChg) base = limitChgRows(base);
+  const q = state.query;
+  if (q) base = base.filter(r => r.code.includes(q) || (r.name||"").includes(q));
   return base;
 }
 function renderGates(){
@@ -738,23 +886,24 @@ function renderTable(){
     if (lag > 60) return `<span class="navtag dead">停更</span>`;
     return `<span class="navtag lag">滞后${lag}天</span>`;
   };
-  const tb = document.getElementById("tbody");
-  let rows = state.cat==="全部" ? state.rows : state.rows.filter(r=>r.category===state.cat);
-  if (state.onlyWatch) rows = rows.filter(r=>watch.has(r.code));
-  // 套利方案五关筛选（AND 组合）
-  if (state.gates.size){
-    rows = rows.filter(r=>[...state.gates].every(k=>GATES.find(g=>g.key===k).test(r, latestNav)));
-  }
-  rows = sortRows(rows);
+  const rows = sortRows(visibleRows());
+  const tm = document.getElementById("tblMeta");
+  if (tm) tm.textContent = `${rows.length} 只`;
   const emptyEl = document.getElementById("empty");
   emptyEl.hidden = rows.length > 0;
   if (!rows.length){
-    emptyEl.textContent = state.gates.size
-      ? "没有标的通过已选的筛选条件——点击卡片中高亮的关卡可逐个取消，或点「重置」"
-      : state.onlyWatch
-        ? "暂无关注标的——点击表格左侧 ☆ 添加自选（仅存本机，不参与推送）"
-        : "暂无数据，点击右上角手动刷新";
+    emptyEl.textContent = state.query
+      ? `没有匹配“${state.query}”的标的——换个关键词，或点搜索框右侧 × 清空`
+      : state.onlyLimitChg
+        ? "当前视图没有限额异动标的（|变动|≥20%）——点「⚠ 限额异动」chip 取消该筛选"
+        : state.gates.size
+          ? "没有标的通过已选的筛选条件——点击卡片中高亮的关卡可逐个取消，或点「重置」"
+          : state.onlyWatch
+            ? "暂无关注标的——点击表格左侧 ☆ 添加自选（仅存本机，不参与推送）"
+            : "暂无数据，点击右上角手动刷新";
   }
+  if (state.view === "cards"){ renderCards(rows); return; }
+  const tb = document.getElementById("tbody");
   tb.innerHTML = "";
   rows.forEach(r=>{
     const tr = document.createElement("tr");
@@ -762,9 +911,6 @@ function renderTable(){
     if (watched) tr.className = "watched";
     const srcTag = r.est_source === 'official' ? '<span class="src a">官方</span>'
                  : r.est_source === 'anchor'   ? '<span class="src">锚点</span>' : '';
-    const sgztDot = r.sgzt==="开放申购" ? '<span class="dot open"></span>'
-                 : r.sgzt==="暂停申购" ? '<span class="dot pause"></span>'
-                 : r.sgzt ? '<span class="dot limit"></span>' : '';
     tr.innerHTML = `
       <td class="star${watched?" on":""}" title="${watched?"取消关注":"加入自选"}">${watched?"★":"☆"}</td>
       <td>${r.code}</td><td>${r.name||""}</td>
@@ -778,66 +924,58 @@ function renderTable(){
       <td class="${cls(r.est_premium)}">${r.est_nav ? fmtPct(r.est_premium)+srcTag : "—"}</td>
       <td class="spk">${sparkSVG(r.code)}</td>
       <td class="opt sh">${fmtShares(r.shares)}${r.share_chg_pct!=null && Math.abs(r.share_chg_pct)>=1 ? `<span class="${cls(r.share_chg_pct)}">${fmtPct(r.share_chg_pct)}</span>`:""}</td>
-      <td class="sgzt">${sgztDot}${r.sgzt || "—"}${r.max_amt!=null && r.sgzt!=="开放申购" ? ` <span class="sgzt">${fmtLimit(r.max_amt)}</span>` : ""}</td>
-      <td class="opt sh">${fmtLimit(r.max_amt)}</td>`;
+      <td class="sgzt">${sgztDotOf(r)}${r.sgzt || "—"}${r.max_amt!=null && r.sgzt!=="开放申购" ? ` <span class="sgzt">${fmtLimit(r.max_amt)}</span>` : ""}</td>
+      <td class="opt sh">${fmtLimit(r.max_amt)}${limitChgBadge(r)}</td>`;
     // 星标点击：切换自选（阻止行展开）
     tr.querySelector(".star").onclick = (ev)=>{
       ev.stopPropagation();
-      if (watch.has(r.code)) watch.delete(r.code); else watch.add(r.code);
-      saveWatch();
-      renderTabs(); renderTable();
+      toggleWatch(r.code);
     };
-    tr.onclick = ()=>toggleDetail(r.code, tr);
+    tr.onclick = ()=>toggleDetail(r.code);
     tb.appendChild(tr);
     if(state.open === r.code) insertDetail(tr, r.code);
   });
 }
 
-async function toggleDetail(code, tr){
+async function toggleDetail(code){
   state.open = state.open === code ? null : code;
   renderTable();
-  if(!state.open) return;
 }
 
-async function insertDetail(tr, code){
-  let items, cal = {};
-  try{
-    if (state.mode === "api"){
-      const h = await getJSON(`api/lof/${code}/history?limit=60`);
-      items = h.items || [];
-      cal = h.calibration || {};
-    } else {
-      // 静态模式：history.json 紧凑序列 [ts, premium, est_premium] → item 格式
-      if (!state.histTs){
-        try{
-          const h = await getJSON(`data/history.json?t=${Date.now()}`, {}, 30000);
-          state.hist = h.series || {}; state.histTs = Date.now()/1000;
-        }catch(e){}
-      }
-      items = (state.hist[code] || []).slice(-60).map(p=>({
-        ts: p[0], premium: p[1], est_premium: p[2]
-      }));
-      // 用 snapshot 当前行丰富名称/估算/现价（末点）
-      const row = (state.rows || []).find(r=>r.code===code);
-      if (row){
-        if (items.length){
-          const last = items[items.length-1];
-          last.name = row.name; last.price = row.price; last.amount = row.amount;
-          last.est_nav = row.est_nav; last.est_nav_raw = row.est_nav_raw;
-          last.est_source = row.est_source;
-          if (row.est_premium != null) last.est_premium = row.est_premium;
-        }
-        cal.beta = row.beta;
-      }
-    }
-  }catch(e){
-    const tr2 = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 13; td.className = "detail";
-    td.innerHTML = `<div class="estline">历史数据加载失败：${e.message}</div>`;
-    tr2.appendChild(td); tr.after(tr2);
-    return;
+// 拉取某基金详情数据（API/静态双模式），失败抛错由调用方展示
+async function fetchDetail(code){
+  if (state.mode === "api"){
+    const h = await getJSON(`api/lof/${code}/history?limit=60`);
+    return {items: h.items || [], cal: h.calibration || {}};
   }
+  // 静态模式：history.json 紧凑序列 [ts, premium, est_premium] → item 格式
+  if (!state.histTs){
+    try{
+      const h = await getJSON(`data/history.json?t=${Date.now()}`, {}, 30000);
+      state.hist = h.series || {}; state.histTs = Date.now()/1000;
+    }catch(e){}
+  }
+  const items = (state.hist[code] || []).slice(-60).map(p=>({
+    ts: p[0], premium: p[1], est_premium: p[2]
+  }));
+  // 用 snapshot 当前行丰富名称/估算/现价（末点）
+  const row = (state.rows || []).find(r=>r.code===code);
+  const cal = {};
+  if (row){
+    if (items.length){
+      const last = items[items.length-1];
+      last.name = row.name; last.price = row.price; last.amount = row.amount;
+      last.est_nav = row.est_nav; last.est_nav_raw = row.est_nav_raw;
+      last.est_source = row.est_source;
+      if (row.est_premium != null) last.est_premium = row.est_premium;
+    }
+    cal.beta = row.beta;
+  }
+  return {items, cal};
+}
+
+// 详情主体 HTML（表格行 / 卡片共用）
+function buildDetailHTML(code, items, cal){
   try{
     const cur = items[items.length-1] || {};
     const srcName = cur.est_source==='official' ? '天天基金官方估值'
@@ -854,10 +992,7 @@ async function insertDetail(tr, code){
          估算溢价 <b class="${cls(cur.est_premium)}">${fmtPct(cur.est_premium)}</b>，
          T-1 溢价 <b class="${cls(cur.premium)}">${fmtPct(cur.premium)}</b></div>${errLine}`
       : `<div class="estline">实时估算：暂无（该基金无官方估值、未配置锚点、且无持仓明细，多为债券/货币型）</div>`;
-    const tr2 = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 13; td.className = "detail";
-    td.innerHTML = `<h3>${code} ${cur.name||""} · 历史快照（最近 ${items.length} 次，每分钟一次）</h3>${estHtml}` +
+    return `<h3>${code} ${cur.name||""} · 历史快照（最近 ${items.length} 次，每分钟一次）</h3>${estHtml}` +
       `<div class="rtabs" id="rt-${code}">` +
         RANGES.map(d=>`<button data-d="${d}" class="${d===7?'on':''}">${d===1?'日内':d+'天'}</button>`).join("") +
       `</div><div id="rc-${code}"><div class="estline">区间数据加载中…</div></div>` +
@@ -870,18 +1005,156 @@ async function insertDetail(tr, code){
         <td class="${cls(x.est_premium)}">${fmtPct(x.est_premium)}</td>
         <td>${fmtAmt(x.amount)}</td></tr>`).join("") +
       `</tbody></table></div>`;
-    tr2.appendChild(td);
-    tr.after(tr2);
-    // 区间 tab 绑定 + 默认加载 7 天
-    const tabs = td.querySelector(`#rt-${code}`);
-    tabs.addEventListener("click", (ev)=>{
-      const btn = ev.target.closest("button");
-      if (!btn) return;
-      tabs.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===btn));
-      loadRange(code, +btn.dataset.d);
+  }catch(e){
+    return `<div class="estline">详情渲染失败：${e.message}</div>`;
+  }
+}
+
+// 区间 tab 绑定（容器可为表格 td 或卡片 div）
+function bindDetailTabs(box, code){
+  const tabs = box.querySelector(`#rt-${code}`);
+  if (!tabs) return;
+  tabs.addEventListener("click", (ev)=>{
+    const btn = ev.target.closest("button");
+    if (!btn) return;
+    tabs.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===btn));
+    loadRange(code, +btn.dataset.d);
+  });
+}
+
+// 表格行内展开（detail 行 colSpan=13，测试锁定）
+async function insertDetail(tr, code){
+  let items, cal = {};
+  try{
+    ({items, cal} = await fetchDetail(code));
+  }catch(e){
+    const tr2 = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 13; td.className = "detail";
+    td.innerHTML = `<div class="estline">历史数据加载失败：${e.message}</div>`;
+    tr2.appendChild(td); tr.after(tr2);
+    return;
+  }
+  const tr2 = document.createElement("tr");
+  const td = document.createElement("td");
+  td.colSpan = 13; td.className = "detail";
+  td.innerHTML = buildDetailHTML(code, items, cal);
+  tr2.appendChild(td);
+  tr.after(tr2);
+  bindDetailTabs(td, code);
+  loadRange(code, 7);
+}
+
+// 卡片内展开（追加 .card-detail 块，复用同一详情 HTML）
+async function insertDetailCard(card, code){
+  const div = document.createElement("div");
+  div.className = "detail card-detail";
+  card.appendChild(div);
+  let items, cal = {};
+  try{
+    ({items, cal} = await fetchDetail(code));
+  }catch(e){
+    div.innerHTML = `<div class="estline">历史数据加载失败：${e.message}</div>`;
+    return;
+  }
+  div.innerHTML = buildDetailHTML(code, items, cal);
+  bindDetailTabs(div, code);
+  loadRange(code, 7);
+}
+
+// —— 卡片视图：每只基金一张卡（手机端默认），点卡展开/收起详情 ——
+function renderCards(rows){
+  const box = document.getElementById("cardsView");
+  if (!box) return;
+  box.innerHTML = "";
+  rows.forEach(r=>{
+    const watched = watch.has(r.code);
+    const card = document.createElement("div");
+    card.className = "fcard" + (watched ? " watched" : "");
+    card.innerHTML = `
+      <div class="fc-top">
+        <div class="fc-id">
+          <div class="fc-name">${r.name||""}</div>
+          <div class="fc-code">${r.code}</div>
+        </div>
+        <div class="fc-prem">
+          <div class="v ${cls(r.premium)}">${fmtPct(r.premium)}</div>
+          <div class="l">T-1 溢价</div>
+        </div>
+        <span class="star${watched?" on":""}" title="${watched?"取消关注":"加入自选"}">${watched?"★":"☆"}</span>
+      </div>
+      <div class="fc-row">
+        <span>现价 <b>${r.price ?? "—"}</b></span>
+        <span class="${cls(r.change_pct)}">${fmtPct(r.change_pct)}</span>
+        <span>估算 <b class="${cls(r.est_premium)}">${r.est_nav ? fmtPct(r.est_premium) : "—"}</b></span>
+      </div>
+      <div class="fc-stats">
+        <div class="it"><span class="k">T-1 净值</span><span>${r.nav ?? "—"}${r.nav_date ? ` <span class="sgzt">${r.nav_date.slice(5)}</span>` : ""}</span></div>
+        <div class="it"><span class="k">成交额</span><span>${fmtAmt(r.amount)}</span></div>
+        <div class="it"><span class="k">日限额</span><span>${fmtLimit(r.max_amt)}${limitChgBadge(r)}</span></div>
+        <div class="it"><span class="k">份额Δ</span><span class="${cls(r.share_chg_pct)}">${fmtShares(r.shares)}${r.share_chg_pct!=null && Math.abs(r.share_chg_pct)>=1 ? ` ${fmtPct(r.share_chg_pct)}` : ""}</span></div>
+      </div>
+      <div class="fc-foot">
+        <span>${sgztDotOf(r)}${r.sgzt || "—"}</span>
+        <span class="spk">${sparkSVG(r.code)}</span>
+      </div>`;
+    card.querySelector(".star").onclick = ev=>{ ev.stopPropagation(); toggleWatch(r.code); };
+    card.onclick = ()=>toggleDetail(r.code);
+    box.appendChild(card);
+    if (state.open === r.code) insertDetailCard(card, r.code);
+  });
+}
+
+// —— 搜索：代码/名称即时过滤（150ms 防抖；Esc / × 清空；与各筛选 AND 组合） ——
+let searchTimer = null;
+function bindSearch(){
+  const inp = document.getElementById("searchInput");
+  const clr = document.getElementById("searchClear");
+  if (!inp || !clr) return;
+  const apply = ()=>{ state.query = inp.value.trim(); state.open = null; renderTable(); };
+  inp.addEventListener("input", ()=>{
+    clr.hidden = !inp.value;
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(apply, 150);
+  });
+  inp.addEventListener("keydown", e=>{
+    if (e.key === "Escape"){ clearTimeout(searchTimer); inp.value = ""; clr.hidden = true; apply(); inp.blur(); }
+    else if (e.key === "Enter"){ clearTimeout(searchTimer); apply(); }
+  });
+  clr.addEventListener("click", ()=>{
+    inp.value = ""; clr.hidden = true; apply(); inp.focus();
+  });
+}
+
+// —— 表格/卡片双视图（localStorage 记忆；手机端无记录时默认卡片） ——
+function bindViewSwitch(){
+  const box = document.getElementById("viewSwitch");
+  if (!box) return;
+  let saved = null;
+  try{ saved = localStorage.getItem("lof-view"); }catch(e){}
+  state.view = saved === "cards" ? "cards" : "table";
+  if (!saved && window.matchMedia("(max-width:560px)").matches) state.view = "cards";
+  const paint = ()=>{
+    box.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.v === state.view));
+    const tw = document.querySelector("#mainTable");
+    if (tw){
+      const wrap = tw.closest(".tblwrap");
+      if (wrap) wrap.style.display = state.view === "cards" ? "none" : "";
+    }
+    document.getElementById("cardsView").hidden = state.view !== "cards";
+    document.getElementById("swipe").style.display = state.view === "cards" ? "none" : "";
+  };
+  box.querySelectorAll("button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      if (state.view === b.dataset.v) return;
+      state.view = b.dataset.v;
+      try{ localStorage.setItem("lof-view", state.view); }catch(e){}
+      state.open = null;
+      paint();
+      renderTable();
     });
-    loadRange(code, 7);
-  }catch(e){ /* 忽略 */ }
+  });
+  paint();
 }
 
 // —— 多日历史回看（7/30/90 天）——
@@ -1328,6 +1601,8 @@ async function loadPerf(){
 (async()=>{
   await detectMode();
   bindSortHeads();
+  bindSearch();
+  bindViewSwitch();
   load();
   setInterval(load, 60000);
 })();
