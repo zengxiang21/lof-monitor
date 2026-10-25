@@ -22,7 +22,13 @@ def main():
         pg.on("pageerror", lambda e: errors.append(f"pageerror: {e}"))
         pg.on("response", lambda r: failed.append(f"HTTP {r.status} {r.url}") if r.status >= 400 else None)
         pg.goto(URL, wait_until="networkidle", timeout=60000)
-        time.sleep(3)
+        # 等表格渲染出来再断言（CDN 冷启动时数据加载可能超过 3 秒，
+        # 固定 sleep 会误报“元素不存在”）
+        try:
+            pg.wait_for_selector("#tabs button", timeout=30000)
+        except Exception as e:  # noqa: BLE001
+            checks.append(("等待渲染超时", False, str(e)[:80]))
+        time.sleep(1)
 
         def check(name, cond, detail=""):
             checks.append((name, bool(cond), detail))
