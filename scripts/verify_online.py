@@ -61,6 +61,15 @@ def main():
         check("五关卡片渲染", ngate == 5, f"gates={ngate}")
         check("关卡含达标计数", "只达标" in pg.inner_text("#gates"))
 
+        # 4c. tabs 高亮即时跟随点击（旧实现只调 renderTable，要等 60s 刷新才纠正）
+        pg.click("#tabs button:nth-child(3)")   # 原油
+        time.sleep(0.3)
+        on_txt = pg.eval_on_selector_all("#tabs button",
+            "e => e.filter(b => b.classList.contains('on')).map(b => b.textContent)")
+        check("点击分类高亮即时跟随", len(on_txt) == 1 and on_txt[0].startswith("原油"), str(on_txt))
+        pg.click("#tabs button:nth-child(2)")   # 回“全部”
+        time.sleep(0.3)
+
         # 5. 暗色切换
         pg.click("#themeBtn")
         time.sleep(0.4)
