@@ -36,6 +36,7 @@ def main():
         check("今日精选卡片", "今日套利精选" in body or "今日精选" in body)
         check("数据时间与只数", "数据时间" in body and "共" in body)
         check("精选含净收益", "预估净收益" in body)
+        check("本金输入框", pg.query_selector("#principalInput") is not None)
         check("信号战绩卡片", "信号战绩" in body)
 
         # 3. 推送记录面板按钮
