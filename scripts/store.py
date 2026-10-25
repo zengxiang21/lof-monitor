@@ -13,6 +13,9 @@
 - shares.jsonl       每日一行份额快照（算份额日变动用）
 - limits.jsonl       每日一行限额快照（算限额变动用）
 - errors.jsonl       每日一行估算误差（β 校准用）
+- nav.jsonl          每日一行官方净值（按净值日期，信号回填写申购成本）
+- signals.jsonl      每日一行套利信号（每日精选，绩效追踪源）
+- performance.json   信号 T+2 回填结果 + 统计（app/performance.py 生成）
 
 本机（有 SQLite）继续走 app/db.py；云端走本模块，两路导出同一套 JSON。
 """
@@ -139,6 +142,23 @@ class Store:
         for it in tick.get("items", []):
             if str(it[F_CODE]).zfill(6) == code:
                 return {"est_nav": it[F_EST_NAV], "ts": tick.get("ts")}
+        return None
+
+    def price_on(self, code: str, date: str, pos: str = "last") -> dict | None:
+        """指定日期某基金的价格（pos=first 开盘 / last 收盘）。
+
+        返回 {"price":…, "ts":…}；当日无行情（非交易日/未采集）返回 None。
+        信号绩效回填：申购日用官方净值，卖出日（T+2）用开盘价。
+        """
+        lines = self._read_lines(date)
+        if not lines:
+            return None
+        use = [lines[0]] if pos == "first" else [lines[-1]]
+        code = str(code).zfill(6)
+        for line in use:
+            for it in line.get("items", []):
+                if str(it[F_CODE]).zfill(6) == code:
+                    return {"price": it[F_PRICE], "ts": line.get("ts")}
         return None
 
     def latest_ts(self) -> int:
@@ -351,6 +371,19 @@ class Store:
     def append_errors_day(self, date: str, pairs: dict[str, list]) -> None:
         """pairs: {code: [est_nav, official_nav]}（同日配对，供 β 比值回归）"""
         self._append_daily("errors.jsonl", date, {"errs": pairs})
+
+    # —— 官方净值历史（按净值日期记，信号绩效回填申购成本用） ——
+
+    def append_nav_day(self, nav_date: str, navs: dict[str, dict]) -> None:
+        """navs: {code: {"nav":…, "nav_date":…}}（key 为净值日期而非采集日期）"""
+        self._append_daily("nav.jsonl", nav_date, {"navs": navs})
+
+    def nav_on(self, date: str) -> dict[str, dict]:
+        """指定净值日期的全市场官方净值 {code: {"nav":…, "nav_date":…}}。"""
+        for row in reversed(self._read_daily("nav.jsonl")):
+            if row.get("date") == date:
+                return row.get("navs", {}) or {}
+        return {}
 
     def recent_errors(self, code: str, limit: int = 5) -> list[dict]:
         code = str(code).zfill(6)
