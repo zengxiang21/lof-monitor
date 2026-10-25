@@ -8,6 +8,11 @@
 - premium_watch 溢价关注：估算溢价突破 ±关注线（默认 ±2%），冷却期内不重复
 - stale_data    停更告警：交易时段最新快照停滞超过阈值分钟（默认 10 分钟，
                 系统级告警；恢复后再报一次"已恢复"）
+- daily_pick    每日精选：每交易日一次，14:40–15:00 窗口评估推送（溢价最
+                接近实盘执行时刻）；同步记录信号供绩效追踪
+- exec_check    执行确认：14:50–15:00 复核精选，仅当标的更换/溢价回落≥1pp/
+                申购状态变化/限额收紧时推送（否则静默），防按旧信息踩坑
+- weekly_report 套利信号周报：每周五收盘后推送累计胜率/平均净收益/10万累计
 
 配置（data/push_config.json）：
 {
@@ -41,7 +46,7 @@ import os
 import re
 import threading
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, time as dtime, timedelta, timezone
 from pathlib import Path
 
 from .config import DATA_DIR
@@ -73,6 +78,8 @@ DEFAULT_CONFIG = {
         "premium_watch": {"enabled": False, "threshold": 2.0, "cooldown_min": 60},
         "stale_data": {"enabled": False, "threshold_min": 10},
         "daily_pick": {"enabled": True},
+        "exec_check": {"enabled": True},
+        "weekly_report": {"enabled": True},
     },
 }
 
@@ -82,6 +89,8 @@ RULE_TITLES = {
     "premium_watch": "溢价关注",
     "stale_data": "停更告警",
     "daily_pick": "每日精选",
+    "exec_check": "执行确认",
+    "weekly_report": "套利信号周报",
 }
 
 _lock = threading.Lock()
@@ -443,44 +452,150 @@ def evaluate_rules(db, only: str | list[str] | None = None) -> list[dict]:
     # —— 每日精选（系统级，每交易日一次，14:45 收盘前推送） ——
     if want("daily_pick"):
         from .pick import evaluate as pick_evaluate
-        state = _load_state()
-        last = state.get("daily_pick:daily") or {}
-        today = _cn_now().strftime("%Y-%m-%d")
-        if last.get("date") != today:
-            best = pick_evaluate(db.latest_quotes())
-            if best:
-                chg = best.get("share_chg_pct")
-                chg_txt = "—" if chg is None else _pct(chg)
-                limit_txt = "不限" if best.get("max_amt") is None \
-                    else f"{best['max_amt'] / 1e4:.1f} 万元"
-                amt = best.get("amount") or 0
-                amt_txt = f"{amt / 1e8:.2f} 亿" if amt >= 1e8 else f"{amt / 1e4:.0f} 万"
-                prem = best["premium"]
-                t1 = best.get("t1_premium")
-                est_nav = best.get("est_nav")
-                if est_nav is None:
-                    r0 = next((x for x in db.latest_quotes()
-                               if x.get("code") == best["code"]), {})
-                    est_nav = r0.get("nav")
-                    nav_label = "T-1 净值"
+        now = _cn_now()
+        # 主窗口 14:40–15:00（溢价最接近实盘执行时刻）；放宽到 15:30 是
+        # 兜底——GitHub Actions 定时任务高峰可能延迟十几分钟，错过窗口
+        # 当天就完全没有精选/信号。收盘后补推会在标题标注。
+        if dtime(14, 40) <= now.time() <= dtime(15, 30):
+            state = _load_state()
+            last = state.get("daily_pick:daily") or {}
+            today = now.strftime("%Y-%m-%d")
+            # 兼容两种历史结构：run_push 落盘用 value，旧版可能用 date
+            if (last.get("value") or last.get("date")) != today:
+                best = pick_evaluate(db.latest_quotes())
+                if best:
+                    late = now.time() > dtime(15, 0)
+                    chg = best.get("share_chg_pct")
+                    chg_txt = "—" if chg is None else _pct(chg)
+                    limit_txt = "不限" if best.get("max_amt") is None \
+                        else f"{best['max_amt'] / 1e4:.1f} 万元"
+                    amt = best.get("amount") or 0
+                    amt_txt = f"{amt / 1e8:.2f} 亿" if amt >= 1e8 else f"{amt / 1e4:.0f} 万"
+                    prem = best["premium"]
+                    t1 = best.get("t1_premium")
+                    est_nav = best.get("est_nav")
+                    if est_nav is None:
+                        r0 = next((x for x in db.latest_quotes()
+                                   if x.get("code") == best["code"]), {})
+                        est_nav = r0.get("nav")
+                        nav_label = "T-1 净值"
+                    else:
+                        nav_label = "估算净值"
+                    net = best.get("net_premium")
+                    profit = best.get("net_profit")
+                    alerts.append({
+                        "rule": "daily_pick", "code": best["code"],
+                        "name": best["name"],
+                        "key": "daily_pick:daily", "value": today,
+                        "title": "今日精选（收盘后补推）" if late else "今日精选",
+                        "_snap": best,          # 14:55 执行确认的快照基线
+                        "text": (f"**今日套利精选** {best['code']} {best['name']}\n"
+                                 f"> 估算溢价 <font color=\"{_color(prem)}\">{_pct(prem)}</font>"
+                                 f"（T-1 溢价 {_pct(t1)}）\n"
+                                 f"> 现价 {best.get('price')} · {nav_label} {est_nav} "
+                                 f"· 日成交额 {amt_txt}\n"
+                                 f"> 日限额 {limit_txt} · {best.get('sgzt')}\n"
+                                 f"> 份额Δ {chg_txt}"
+                                 f"{'（<font color=\"warning">拥挤，谨慎</font>）' if best.get('crowded') else ''}\n"
+                                 + (f"> 预估净收益 <font color=\"warning\">{_pct(net)}</font>"
+                                    f"（已扣申赎费约 {best.get('fee_pct')}%）· 10 万本金约赚 "
+                                    f"<font color=\"warning\">¥{profit:,}</font>\n"
+                                    if net is not None and profit is not None else "")
+                                 + (f"> <font color=\"warning\">注意</font>："
+                                    f"{best.get('nav_lag_msg')}\n"
+                                    if best.get("nav_lag_warn") else "")
+                                 + f"> 全市场 {best.get('passed')} 只过五关，此票排名第一\n"
+                                 f"> 操作：14:30 后复核溢价 → 15:00 前申购 → T+2 开盘卖出"),
+                    })
+                    # 信号记录（绩效追踪）：云端 store 模式才落盘
+                    store = getattr(db, "store", None)
+                    if store is not None:
+                        try:
+                            from .performance import record_signal
+                            record_signal(store.root, best)
+                        except Exception as e:  # noqa: BLE001
+                            log.warning("record_signal failed: %s", e)
+
+    # —— 执行前最终确认（14:50–15:00；仅实质变更才推送，否则静默） ——
+    if want("exec_check"):
+        from .pick import evaluate as pick_evaluate
+        now = _cn_now()
+        if dtime(14, 50) <= now.time() <= dtime(15, 0):
+            state = _load_state()
+            snap = state.get("daily_pick:snap") or {}
+            cur = pick_evaluate(db.latest_quotes())
+            # 本轮刚生成过精选（快照随后由 run_push 落盘）→ 跳过，避免重复推
+            fresh = any(a["rule"] == "daily_pick" for a in alerts)
+            if not (fresh and not snap.get("code")):
+                reasons: list[str] = []
+                if cur is None:
+                    if snap.get("code"):
+                        reasons.append("原精选已不符合五关（溢价回落/申购/限额变化）")
+                elif not snap.get("code"):
+                    reasons.append("14:45 未评估，当前精选如下")
                 else:
-                    nav_label = "估算净值"
-                alerts.append({
-                    "rule": "daily_pick", "code": best["code"],
-                    "name": best["name"],
-                    "key": "daily_pick:daily", "value": today,
-                    "title": "今日精选",
-                    "text": (f"**今日套利精选** {best['code']} {best['name']}\n"
-                             f"> 估算溢价 <font color=\"{_color(prem)}\">{_pct(prem)}</font>"
-                             f"（T-1 溢价 {_pct(t1)}）\n"
-                             f"> 现价 {best.get('price')} · {nav_label} {est_nav} "
-                             f"· 日成交额 {amt_txt}\n"
-                             f"> 日限额 {limit_txt} · {best.get('sgzt')}\n"
-                             f"> 份额Δ {chg_txt}"
-                             f"{'（<font color=\"warning">拥挤，谨慎</font>）' if best.get('crowded') else ''}\n"
-                             f"> 全市场 {best.get('passed')} 只过五关，此票排名第一\n"
-                             f"> 操作：14:30 后复核溢价 → 15:00 前申购 → T+2 开盘卖出"),
-                })
+                    # 仅真实发送模式（配置了 webhook）才判定"推送失败"，
+                    # 记录模式下 sent 恒为 False，不能当异常
+                    if webhook_configured() and not snap.get("pushed"):
+                        reasons.append("14:45 精选推送疑似失败，重新确认")
+                    if snap.get("code") != cur.get("code"):
+                        reasons.append(f"精选更换：{snap.get('code')} → {cur.get('code')}")
+                    drop = (snap.get("premium") or 0) - (cur.get("premium") or 0)
+                    if drop >= 1.0:
+                        reasons.append(f"溢价回落 {drop:.2f} 个百分点"
+                                       f"（{snap.get('premium')}% → {cur.get('premium')}%）")
+                    if snap.get("sgzt") != cur.get("sgzt"):
+                        reasons.append(f"申购状态变化：{snap.get('sgzt')} → {cur.get('sgzt')}")
+                    sm, cm = snap.get("max_amt"), cur.get("max_amt")
+                    if sm is None and cm is not None:
+                        reasons.append(f"限额收紧：不限 → {cm / 1e4:.1f} 万元")
+                    elif sm is not None and cm is not None and cm < sm:
+                        reasons.append(f"限额下调：{sm / 1e4:.1f} → {cm / 1e4:.1f} 万元")
+                if reasons:
+                    tgt = cur or snap
+                    title = "执行确认" if cur else "执行警报"
+                    text_lines = [f"**{title}** {tgt.get('code')} {tgt.get('name') or ''}"]
+                    if cur:
+                        text_lines.append(
+                            f"> 当前溢价 <font color=\"{_color(cur.get('premium'))}\">"
+                            f"{_pct(cur.get('premium'))}</font>"
+                            f" · 预估净收益 {_pct(cur.get('net_premium'))}"
+                            f" · 限额 "
+                            + ("不限" if cur.get("max_amt") is None
+                               else f"{cur['max_amt'] / 1e4:.1f} 万元")
+                            + f" · {cur.get('sgzt')}")
+                    text_lines.append("> 变更：" + "；".join(reasons))
+                    text_lines.append("> 15:00 前申购，若不再符合预期可放弃本次"
+                                      if cur else
+                                      f"> 原精选 {snap.get('code')} {snap.get('name')}，建议放弃本次申购")
+                    alerts.append({
+                        "rule": "exec_check",
+                        "code": tgt.get("code") or "", "name": tgt.get("name") or "",
+                        "key": "exec_check:daily",
+                        "value": now.strftime("%Y-%m-%d"),
+                        "title": title, "text": "\n".join(text_lines),
+                    })
+
+    # —— 套利信号周报（每周五收盘后一次） ——
+    if want("weekly_report"):
+        now = _cn_now()
+        if now.weekday() == 4 and dtime(15, 0) <= now.time():
+            store = getattr(db, "store", None)
+            if store is not None:
+                from .performance import weekly_summary
+                try:
+                    wtitle, wtext = weekly_summary(store, store.root)
+                except Exception as e:  # noqa: BLE001
+                    log.warning("weekly_summary failed: %s", e)
+                    wtitle, wtext = "", ""
+                if wtitle:
+                    iso_y, iso_w, _ = now.isocalendar()
+                    alerts.append({
+                        "rule": "weekly_report", "code": "", "name": "",
+                        "key": "weekly_report:week",
+                        "value": f"{iso_y}-W{iso_w:02d}",
+                        "title": wtitle, "text": wtext,
+                    })
 
     # —— 停更告警（系统级） ——
     if want("stale_data"):
@@ -550,6 +665,11 @@ def run_push(db, only: str | None = None) -> dict:
                            "alerted": (a["value"] > 0) if a["rule"] == "stale_data" else False,
                            "side": ("up" if a["value"] > 0 else "down")
                            if a["rule"] == "premium_watch" else None}
+        # 每日精选快照：14:55 执行确认的比对基线（含是否推送成功）
+        if "_snap" in a:
+            snap = dict(a["_snap"])
+            snap["pushed"] = bool(ok)
+            state["daily_pick:snap"] = snap
 
     _save_state(state)
     return {"alerts": len(alerts), "sent": sent, "recorded": recorded,
