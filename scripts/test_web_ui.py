@@ -65,7 +65,11 @@ def _run_checks():
         pg.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
         pg.on("pageerror", lambda e: errors.append(f"pageerror: {e}"))
         pg.goto(BASE, wait_until="networkidle", timeout=60000)
-        time.sleep(4)
+        try:
+            pg.wait_for_selector("#tabs button", timeout=30000)   # 等渲染，勿用固定 sleep
+        except Exception as e:  # noqa: BLE001
+            check("等待渲染超时", False, str(e)[:80])
+        time.sleep(2)
 
         # 1. 主表 13 列（星标 + 原 12 列）
         ncol = pg.eval_on_selector("#tbody",
