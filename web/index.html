@@ -355,12 +355,12 @@ async function load(){
   const meta = document.getElementById("meta");
   state.notice = null;
   loadPick();
-  loadPerf();
   try{
     if (state.mode === "static"){
       const s = await getJSON(`data/snapshot.json?t=${Date.now()}`, {}, 15000);
       state.rows = s.items || []; state.counts = s.counts || {}; state.updatedTs = s.updated_ts || 0;
       renderTabs(); renderTable();
+      loadPerf();               // rows 就绪后再算持有中信号的实时浮动
       if (!state.histTs || Date.now()/1000 - state.histTs > 240){
         try{
           const h = await getJSON(`data/history.json?t=${Date.now()}`, {}, 20000);
@@ -375,6 +375,7 @@ async function load(){
     ]);
     state.rows = list.items; state.counts = sum.counts; state.updatedTs = sum.updated_ts;
     renderTabs(); renderTable();
+    loadPerf();               // rows 就绪后再算持有中信号的实时浮动
     // 自愈补采：交易时段数据滞后 >2.5 分钟 → 自动触发一次采集（节流 3 分钟）
     maybeAutoCollect();
     // 迷你图数据：每 4 分钟拉一次全市场序列
@@ -886,25 +887,52 @@ async function loadPerf(){
         <span>10 万累计 <b class="${st.total_profit >= 0 ? 'up' : 'down'}">${st.total_profit >= 0 ? '盈' : '亏'} ¥${Math.abs(st.total_profit).toLocaleString()}</b></span>
       </div>`;
     }
+    // 持有中信号的实时浮动盈亏：现价（snapshot）vs 申购净值估值，扣全链条费用
+    const feePct = (d.fee_pct != null ? d.fee_pct : 0.18);
+    const priceOf = code => (state.rows || []).find(r => r.code === code);
     html += `<div class="tblwrap"><table><thead><tr>
-      <th>信号日期</th><th>代码/名称</th><th>信号溢价</th><th>卖出（T+2开盘）</th>
+      <th>信号日期</th><th>代码/名称</th><th>信号溢价</th><th>申购净值</th><th>卖出 / 现价</th>
       <th>净收益</th><th>10万盈亏</th><th>结果</th>
     </tr></thead><tbody>`;
     for (const s of sigs.slice(0, 20)){
       const settled = s.status === "settled";
-      const net = settled ? s.net_pct : null;
-      const prof = settled ? (s.net_profit || 0) : null;
-      const netCls = net == null ? "flat" : (net > 0 ? "up" : "down");
+      const row = priceOf(s.code);
+      let navTxt, sellTxt, netTxt, netCls, profTxt, profCls, resTxt;
+      if (settled){
+        navTxt = s.sub_nav != null ? s.sub_nav : "—";
+        sellTxt = `${s.sell_price} <span class="sgzt">${(s.sell_date || "").slice(5)} 开盘</span>`;
+        netCls = s.net_pct > 0 ? "up" : "down";
+        netTxt = (s.net_pct > 0 ? "+" : "") + s.net_pct.toFixed(2) + "%";
+        profCls = (s.net_profit || 0) >= 0 ? "up" : "down";
+        profTxt = (s.net_profit >= 0 ? "+" : "-") + "¥" + Math.abs(s.net_profit || 0).toLocaleString();
+        resTxt = s.win ? '<span class="up">胜</span>' : '<span class="down">负</span>';
+      } else {
+        // 持有中：现价 vs 信号时记录的净值（估值，实际以申购日官方净值为准）
+        navTxt = s.nav != null ? `${s.nav}<span class="sgzt">估</span>` : "—";
+        const px = row ? row.price : null;
+        const flt = (px != null && s.nav) ? ((px / s.nav - 1) * 100 - feePct) : null;
+        sellTxt = px != null ? `${px} <span class="sgzt">现价</span>` : "—";
+        netCls = flt == null ? "flat" : (flt > 0 ? "up" : "down");
+        netTxt = flt == null ? "—" : (flt > 0 ? "+" : "") + flt.toFixed(2) + "%";
+        profTxt = flt == null ? "—" : (flt >= 0 ? "+" : "-") + "¥" + Math.abs(Math.round(100000 * flt / 100)).toLocaleString();
+        profCls = netCls;
+        resTxt = '<span class="flat">持有中</span>';
+      }
       html += `<tr>
         <td>${s.date || ""}</td><td>${s.code} ${s.name || ""}</td>
         <td class="up">+${(s.premium ?? 0).toFixed(2)}%</td>
-        <td>${settled ? `${s.sell_price} <span class="sgzt">${(s.sell_date || "").slice(5)}</span>` : "待回填"}</td>
-        <td class="${netCls}">${net == null ? "—" : (net > 0 ? '+' : '') + net.toFixed(2) + '%'}</td>
-        <td class="${prof == null ? "flat" : (prof >= 0 ? "up" : "down")}">${prof == null ? "—" : (prof >= 0 ? '+' : '-') + '¥' + Math.abs(prof).toLocaleString()}</td>
-        <td>${settled ? (s.win ? '<span class="up">胜</span>' : '<span class="down">负</span>') : '<span class="flat">持有中</span>'}</td>
+        <td>${navTxt}</td><td>${sellTxt}</td>
+        <td class="${netCls}">${netTxt}</td>
+        <td class="${profCls}">${profTxt}</td>
+        <td>${resTxt}</td>
       </tr>`;
     }
     html += "</tbody></table></div>";
+    if (sigs.some(s => s.status !== "settled")){
+      html += `<div class="meta" style="padding:6px 4px 0">持有中行的净收益为<b>实时浮动估算</b>` +
+        `（现价 vs 申购净值估值，已扣费约 ${feePct}%，随页面每 60 秒刷新）；` +
+        `T+2 开盘卖出后自动替换为实际回填值（真实申购净值 × 真实卖出价）。</div>`;
+    }
     if (sigs.length > 20) html += `<div class="meta" style="padding:6px 4px">仅显示最近 20 条，完整数据见推送记录</div>`;
     body.innerHTML = html;
   }catch(e){
