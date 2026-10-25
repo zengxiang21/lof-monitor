@@ -48,6 +48,12 @@ def main():
               "e => e.closest('table').querySelectorAll('thead tr th').length") == 13)
         check("关注筛选chip", pg.eval_on_selector("#tabs button", "e => e.textContent").startswith("☆ 关注"))
 
+        # 4b. 套利方案：五关实时筛选
+        check("套利方案卡片", "套利方案" in body and "五关" in body)
+        ngate = pg.eval_on_selector_all("#gates .gate", "e => e.length")
+        check("五关卡片渲染", ngate == 5, f"gates={ngate}")
+        check("关卡含达标计数", "只达标" in pg.inner_text("#gates"))
+
         # 5. 暗色切换
         pg.click("#themeBtn")
         time.sleep(0.4)
