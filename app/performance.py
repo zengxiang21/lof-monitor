@@ -157,6 +157,7 @@ def backfill(store, root: str | Path | None = None) -> dict:
     payload = {
         "generated_at": _cn_now().isoformat(timespec="seconds"),
         "principal": PERF_PRINCIPAL,
+        "fee_pct": round(FEE_TOTAL_RATE * 100, 2),
         "signals": out,
         "stats": _stats(out),
     }
