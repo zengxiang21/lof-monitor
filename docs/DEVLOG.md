@@ -722,3 +722,22 @@ pending 边界）全 PASS；scripts/test_web_ui.py 14 项浏览器实测全 PASS
 **测试**：test_web_ui 25→28 项（新增五关渲染/达标计数/全上筛选 rows=2/
 重置 rows=404）；verify_online 增套利方案断言共 14 项全 PASS；亮/暗/
 移动端/校准页/线上五处截图核验通过；控制台仅 /api/summary 预期探测 404
+
+### 精选卡本金输入：手动算预计收益（10-25，commit 随 feat）
+
+用户要在精选卡手动输入投资额算预计收益（"10 万本金约赚 ¥5,029 / 1w / 1k"）：
+
+- 净收益条的"10 万本金约赚"改为可编辑输入框，实时重算预计净赚
+- 解析规则：1w=1万 / 1k=1千 / 1万 / 纯数字（容忍千分位逗号）；失焦
+  归一化 + localStorage（lof-principal）记忆；非法输入显示 "—"
+- 收益率口径：优先用后端 net_profit/100000 反推（10 万口径默认值与
+  后端精确值一致，避免用显示层四舍五入的 net_premium 造成 ¥1 偏差），
+  后端缺失时回退 net_premium/100
+- test_web_ui +6 项（2w→¥1,006 / 1k→¥50 / 非法→— / 恢复→¥5,029 /
+  记忆）；verify_online 增本金输入框断言（15 项全 PASS）
+
+**测试脚本健壮性修复**：verify_online/test_web_ui 原用固定 sleep(3/4)
+等渲染，CDN 冷启动时数据加载超时会导致 `#tabs button` 误报不存在
+（线上偶发，重试即过）——改为 `wait_for_selector("#tabs button",
+timeout=30000)`，根因是 detectMode 的 API 探测失败重试（1.2s×2）
++ snapshot 拉取在冷 CDN 上超过 3 秒
