@@ -649,17 +649,29 @@ function renderTabs(){
   const w = document.createElement("button");
   w.className = "tab" + (state.onlyWatch ? " on" : "");
   w.textContent = `☆ 关注(${watch.size})`;
-  w.onclick = ()=>{ state.onlyWatch = !state.onlyWatch; state.open = null; renderTable(); };
+  w.onclick = ()=>{ state.onlyWatch = !state.onlyWatch; state.open = null; paintTabs(); renderGates(); renderTable(); };
   el.appendChild(w);
   CATS.forEach(c=>{
     const n = c==="全部" ? state.rows.length : (state.counts[c]||0);
     const b = document.createElement("button");
     b.className = "tab" + (state.cat===c ? " on" : "");
     b.textContent = `${c}(${n})`;
-    b.onclick = ()=>{ state.cat = c; state.open = null; renderTable(); };
+    b.onclick = ()=>{ state.cat = c; state.open = null; paintTabs(); renderGates(); renderTable(); };
     el.appendChild(b);
   });
   renderGates();   // 关卡实时计数随数据/分类刷新
+}
+
+// tabs 高亮即时跟随点击：只切 class、不重建 DOM
+// （旧实现点击后只调 renderTable，高亮要等 60s 自动刷新才纠正——“有时不跟随”的根因；
+//  不重建 DOM 同时保留手机端 tabs 的横向滚动位置）
+function paintTabs(){
+  const el = document.getElementById("tabs");
+  if (!el || el.children.length !== CATS.length + 1) return;
+  for (let i = 0; i < el.children.length; i++){
+    const on = i === 0 ? state.onlyWatch : state.cat === CATS[i-1];
+    el.children[i].classList.toggle("on", on);
+  }
 }
 
 // —— 套利方案：渲染五关卡片（含实时达标计数） ——
