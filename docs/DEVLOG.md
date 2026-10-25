@@ -786,3 +786,42 @@ Tailwind v4 + shadcn/ui 风格）：
 - **回归**：test_web_ui 34→37 项（点击分类高亮即时跟随 / 关卡计数
   随分类收敛 / 关注 chip 高亮即时跟随）；线上 verify_online 16 项
   全 PASS（含同类断言）；本地截图 + 线上截图双重核验
+
+### 四项优化：搜索/限额异动/卡片视图/刷新churn + 工程卫生（10-26，commit 7788af8）
+
+用户全选了优化清单，一次性落地：
+
+- **搜索**：表格卡头部搜索框，代码/名称 150ms 防抖即时过滤，Esc/× 清空，
+  与分类/关注/限额异动/五关全部 AND 组合；meta 追加"搜索 xxx 命中 N 只"；
+  无结果有空态引导
+- **限额异动**：新增「⚠ 限额异动」chip——|limit_chg_pct|≥20%（与推送规则
+  limit_change 默认阈值同口径，数据来自 limit_map 的上一有记录日对比）；
+  日限额列加 ▲提高/▼下调角标（涨红跌绿）；chip 标签带实时计数；
+  五关计数口径（gateBaseRows）同步接入分类+关注+异动+搜索
+- **表格/卡片双视图**：卡片含溢价大字/现价涨跌/估算溢价/T-1净值/成交额/
+  日限额+角标/份额Δ/申购状态/迷你图；点卡展开详情——重构 insertDetail
+  抽出 fetchDetail / buildDetailHTML / bindDetailTabs 三件套供表格 tr 与
+  卡片 div 两路复用（表格路径 colSpan=13 不变，测试锁定）；≤560px 无记录
+  时默认卡片，localStorage(lof-view) 记忆
+- **60s 刷新 churn**：load() 比对 updatedTs 与 renderedTs，数据未变跳过
+  renderTabs/renderTable 的 404 行 innerHTML 重建；maybeAutoCollect 移到
+  渲染守卫之外（停更检测每轮都跑）；排序/筛选/星标等交互各自触发渲染不受影响
+
+**工程卫生（根因修复）**：
+- repair_remote 的 upload() 一直传**工作树原始字节**（Windows CRLF），而
+  比对用 ls-tree 的 LF 口径 sha → 远端存 CRLF、本地记 LF，42 个"传了也
+  清不掉"的行尾噪音。改传 `git cat-file blob HEAD:path` 规范化内容
+  （未跟踪文件回退原始字节）后重传 39 个纯行尾文件，**噪音 42→0**，
+  待传清单稳态 = 14 个云端更新的数据文件
+- .gitattributes（`* text=auto eol=lf` + 二进制声明）
+- scripts/sync_web_docs.sh：web→docs 页面同步 + 忽略行尾的一致性校验，
+  取代手动 cp（历史上漏过 docs/index.html 旧版残留）
+
+**顺带修的隐藏 bug**：`.sclear`/`.cardsview` 的作者 `display` 规则会覆盖
+`hidden` 属性的 UA `display:none`——× 清空按钮在干净态依然可见、卡片容器
+在表格态仍占位。加 `[hidden]{display:none !important}` 全局重置；测试从
+"断言 hidden 属性"升级为"断言计算样式"（此前的测试因此漏过了该 bug）
+
+**测试**：37→49 项全过（搜索三态/异动角标 ▲55%▼30%/chip 筛选剩 2 行/
+卡片视图数量+详情展开收起+星标+记忆/清空按钮与卡片容器真正隐藏）；
+线上 verify_online 20 项全过；sw.js 升 v21
