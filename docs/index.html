@@ -219,6 +219,12 @@
   .pick-net.neg{background:var(--soft-down)}
   .pick-net b{font-weight:700;font-variant-numeric:tabular-nums}
   .pick-net .sep{opacity:.45}
+  .pin{width:84px;border:1px solid rgba(0,0,0,.14);border-radius:7px;padding:2px 8px;
+       font-size:13px;font-family:inherit;font-weight:600;text-align:right;
+       background:var(--card);color:var(--text);font-variant-numeric:tabular-nums;
+       transition:border-color .15s,box-shadow .15s}
+  .pin:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(24,95,165,.14)}
+  [data-theme="dark"] .pin{border-color:var(--line)}
   .pick-stats{margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:1px;
               background:var(--line2);border:1px solid var(--line2);border-radius:10px;overflow:hidden}
   .stat{background:var(--card);padding:9px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -366,7 +372,8 @@
       估算净值已按 <b>β 校准</b>（每日 22:45 用官方净值回归校准系数，样本≥5 天启用个体 β，否则组级兜底；展开行可见 β 与近期误差）。
       <b>点击表头可按该列排序，再点一次切换升/降序</b>（自动记住上次选择）。
       点击行首 <b>☆ 加入自选关注</b>（仅存本机浏览器，不参与推送），关注行高亮，顶部"☆ 关注"chip 可筛选。
-      右上角 <b>🌙 切换暗色模式</b>。信号战绩卡展示每日精选的 T+2 真实盈亏回填。</div>
+      右上角 <b>🌙 切换暗色模式</b>。信号战绩卡展示每日精选的 T+2 真实盈亏回填。
+      精选卡<b>本金框可手动输入投资额</b>（支持 1w=1万 / 1k=1千），实时算出预计净赚并记住。</div>
     </details>
   </div>
 </div>
@@ -1069,6 +1076,49 @@ document.getElementById("pushBtn").onclick = async () => {
   }
 };
 
+// ---------- 精选卡：本金输入，实时算预计收益 ----------
+// 解析投资额：支持 1w=1万 / 1k=1千 / 1万 / 纯数字（可带千分位逗号）
+function parsePrincipal(v){
+  const m = String(v == null ? "" : v).replace(/[,\s，]/g, "")
+    .match(/^(\d+(?:\.\d+)?)(w|W|k|K|万)?$/);
+  if (!m) return null;
+  const n = parseFloat(m[1]);
+  const u = (m[2] || "").toLowerCase();
+  if (u === "w" || u === "万") return n * 1e4;
+  if (u === "k") return n * 1e3;
+  return n;
+}
+function fmtPrincipal(v){ return Number(v).toLocaleString("zh-CN"); }
+function bindPrincipal(p){
+  const pin = document.getElementById("principalInput");
+  const el = document.getElementById("pickProfit");
+  if (!pin || !el) return;
+  // 收益率口径：优先用后端精确净收益反推（10 万本金），保证默认显示与后端一致
+  const rate = (p.net_profit != null && p.net_profit !== 0) ? p.net_profit / 100000
+             : (p.net_premium != null ? p.net_premium / 100 : 0);
+  let saved = null;
+  try{ saved = parseFloat(localStorage.getItem("lof-principal")); }catch(e){}
+  pin.value = (saved && saved > 0) ? fmtPrincipal(saved) : "100,000";
+  const recalc = ()=>{
+    const v = parsePrincipal(pin.value);
+    if (v == null || v <= 0){ el.textContent = "—"; el.className = "flat"; return; }
+    const profit = Math.round(v * rate);
+    el.textContent = (profit >= 0 ? "¥" : "-¥") + Math.abs(profit).toLocaleString("zh-CN");
+    el.className = profit >= 0 ? "up" : "down";
+  };
+  pin.oninput = recalc;
+  pin.onblur = ()=>{
+    const v = parsePrincipal(pin.value);
+    if (v != null && v > 0){
+      pin.value = fmtPrincipal(v);
+      try{ localStorage.setItem("lof-principal", String(v)); }catch(e){}
+    }
+    recalc();
+  };
+  pin.onkeydown = e => { if (e.key === "Enter") pin.blur(); };
+  recalc();
+}
+
 // ---------- 今日精选卡片 ----------
 async function loadPick(){
   try{
@@ -1106,7 +1156,8 @@ async function loadPick(){
       (p.net_premium != null
         ? `<div class="pick-net ${p.net_premium>0?'':'neg'}">预估净收益 <b class="${p.net_premium>0?'up':'down'}">${p.net_premium>0?'+':''}${p.net_premium.toFixed(2)}%</b>` +
           `<span class="sep">·</span>已扣申赎费约 ${p.fee_pct != null ? p.fee_pct : 0.18}%` +
-          `<span class="sep">·</span>10 万本金约赚 <b class="${p.net_profit>0?'up':'down'}">¥${(p.net_profit||0).toLocaleString()}</b></div>`
+          `<span class="sep">·</span>本金 <input id="principalInput" class="pin" type="text" inputmode="decimal" title="输入投资额，支持 1w=1万 / 1k=1千，自动记住">` +
+          ` 约赚 <b id="pickProfit" class="${p.net_premium>0?'up':'down'}">¥${(p.net_profit||0).toLocaleString("zh-CN")}</b></div>`
         : "") +
       `<div class="pick-stats">
           <div class="stat"><span class="k">现价</span><span class="v">${p.price ?? "—"}</span></div>
@@ -1120,6 +1171,7 @@ async function loadPick(){
       (p.nav_lag_warn ? `<div class="pick-warn"><span>⚠</span><span><b>净值滞后 ${p.nav_lag_days} 天</b>：${lagMsg}</span></div>` : "") +
       `<div class="pick-foot"><span class="dot" style="background:var(--accent)"></span>节奏：14:30 后复核溢价 → 15:00 前提交申购 → T+2 开盘卖出 · ${p.sgzt || ""}</div>
       </div>`;
+    bindPrincipal(p);   // 本金输入框：手动算预计收益
     if (p.passed_list && p.passed_list.length > 1){
       body.insertAdjacentHTML("beforeend",
         `<div class="pick-more"><a href="javascript:void 0" id="pickToggle">展开全部 ${p.passed_list.length} 只过关标的 ▸</a></div>` +
