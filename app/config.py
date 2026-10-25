@@ -21,6 +21,21 @@ BETA_UPDATE_CRON = {"hour": 22, "minute": 45}   # 净值到齐后：估算误差
 PREMIUM_WATCH = 2.0    # 溢价关注线（%）
 DISCOUNT_WATCH = -2.0  # 折价关注线（%）
 
+# ---------- 套利成本假设（净收益算账用） ----------
+# 场内 LOF 申购费：标准 1.5%，多数渠道一折（0.15%）；各渠道略有差异
+SUB_FEE_RATE = 0.0015
+# 卖出：佣金万 2.5 + 过户费 ≈ 0.03%（最低 5 元佣金在 10 万本金下占比 0.005%，忽略）
+SELL_FEE_RATE = 0.0003
+FEE_TOTAL_RATE = SUB_FEE_RATE + SELL_FEE_RATE   # 全链条约 0.18%
+
+# ---------- QDII 假溢价识别 ----------
+# 这些分类的基金投向境外市场，净值通常滞后 1–2 天（时差+公布节奏），
+# 溢价含"净值追不上"的水分，选股时净值新鲜度门槛收紧、卡片加标注
+QDII_CATS = ("海外", "原油")
+NAV_STALE_DAYS_QDII = 2      # QDII 净值滞后超过该天数 → 不予精选
+NAV_STALE_DAYS = 5           # 其余基金净值披露超过该天数视为不可信
+PERF_PRINCIPAL = 100000      # 绩效算账本金（元）
+
 # ---------- 网络 ----------
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
