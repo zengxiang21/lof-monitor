@@ -156,6 +156,21 @@ def _run_checks():
                                    "e => e.querySelectorAll('thead th').length")
         check("战绩表 8 列", ncol == 8, f"ncol={ncol}")
 
+        # 11. 套利方案：五关实时筛选
+        ngate = pg.eval_on_selector_all("#gates .gate", "e => e.length")
+        check("五关卡片渲染", ngate == 5, f"gates={ngate}")
+        gate_txt = pg.inner_text("#gates")
+        check("关卡含实时达标计数", "只达标" in gate_txt)
+        pg.click("#planAll")
+        time.sleep(0.5)
+        n2 = pg.eval_on_selector_all("#tbody tr", "e => e.length")
+        act = pg.inner_text("#planActive")
+        check("五关全上实时筛选", "命中" in act and n2 == 2, f"rows={n2} act={act[:24]}")
+        pg.click("#planReset")
+        time.sleep(0.3)
+        n3 = pg.eval_on_selector_all("#tbody tr", "e => e.length")
+        check("重置恢复全量", n3 > 2, f"rows={n3}")
+
         pg.screenshot(path="shots/ui_test.png", full_page=False)
         b.close()
 
