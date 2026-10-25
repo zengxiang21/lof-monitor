@@ -62,13 +62,28 @@ def main():
         check("关卡含达标计数", "只达标" in pg.inner_text("#gates"))
 
         # 4c. tabs 高亮即时跟随点击（旧实现只调 renderTable，要等 60s 刷新才纠正）
-        pg.click("#tabs button:nth-child(3)")   # 原油
+        # 子元素顺序：1=关注 2=限额异动 3=全部 4=原油 …
+        pg.click("#tabs button:nth-child(4)")   # 原油
         time.sleep(0.3)
         on_txt = pg.eval_on_selector_all("#tabs button",
             "e => e.filter(b => b.classList.contains('on')).map(b => b.textContent)")
         check("点击分类高亮即时跟随", len(on_txt) == 1 and on_txt[0].startswith("原油"), str(on_txt))
-        pg.click("#tabs button:nth-child(2)")   # 回“全部”
+        pg.click("#tabs button:nth-child(3)")   # 回“全部”
         time.sleep(0.3)
+
+        # 4d. 限额异动 chip + 搜索框 + 视图切换
+        tab_txts = [b2.inner_text() for b2 in pg.query_selector_all("#tabs button")]
+        check("限额异动 chip", any("限额异动" in t for t in tab_txts),
+              str([t for t in tab_txts if "限额" in t])[:40])
+        check("搜索框存在", pg.query_selector("#searchInput") is not None)
+        check("视图切换存在",
+              len(pg.query_selector_all("#viewSwitch button")) == 2)
+        pg.fill("#searchInput", "50")           # 沪市 LOF 代码前缀
+        time.sleep(0.5)
+        n_q = pg.eval_on_selector_all("#tbody tr", "e => e.length")
+        check("搜索即时过滤", 0 < n_q < 404, f"rows={n_q}")
+        pg.click("#searchClear")
+        time.sleep(0.4)
 
         # 5. 暗色切换
         pg.click("#themeBtn")
