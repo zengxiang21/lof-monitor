@@ -3,57 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#f5f6f8">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23185FA5'/%3E%3Cpath d='M7 21l5-6 4 3 6-8' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#f8fafc">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d4ed8'/%3E%3Cpath d='M7 21l5-6 4 3 6-8' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="LOF套利监控">
 <link rel="manifest" href="manifest.webmanifest">
 <title>估算误差回测 · β 校准 — LOF 套利监控</title>
 <style>
+  /* 设计语言：slate 中性色 + brand 蓝（与监控台一致） */
   :root{
-    --bg:#f5f6f8; --card:#ffffff; --line:#e6e8ee; --line2:#eef0f4;
-    --text:#16181d; --sub:#6f7684; --up:#d93a2e; --down:#0f9d58; --accent:#185FA5;
-    --hover:#f6f8fb; --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px -6px rgba(16,24,40,.08);
-    --soft-up:#fdeceb; --soft-down:#e7f6ee; --soft-warn:#fff4e2; --soft-accent:#eaf1fa;
-    --radius:14px;
+    --bg:#f8fafc; --card:#ffffff; --line:#e2e8f0; --line2:#edf1f6;
+    --text:#0f172a; --sub:#64748b; --up:#dc2626; --down:#059669; --accent:#1d4ed8;
+    --hover:#f1f5f9; --shadow:0 1px 2px rgba(15,23,42,.05);
+    --soft-up:#fef2f2; --soft-down:#ecfdf5; --soft-warn:#fffbeb; --soft-accent:#eff6ff;
+    --radius:12px;
   }
   [data-theme="dark"]{
     --bg:#0f1218; --card:#171b24; --line:#262c3a; --line2:#1f2531;
-    --text:#e6e8ee; --sub:#8f98a8; --up:#f0554a; --down:#2ec06b; --accent:#4a9eff;
-    --hover:#1b2130; --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px -8px rgba(0,0,0,.5);
+    --text:#e6e8ee; --sub:#8f98a8; --up:#f0554a; --down:#2ec06b; --accent:#3b82f6;
+    --hover:#1b2130; --shadow:0 1px 2px rgba(0,0,0,.3);
     --soft-up:#33191a; --soft-down:#12291d; --soft-warn:#33260f; --soft-accent:#152336;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{-webkit-text-size-adjust:100%}
   body{background:var(--bg);color:var(--text);
-       font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.5;
+       font-family:Inter,-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.5;
        -webkit-font-smoothing:antialiased;transition:background-color .25s ease,color .25s ease}
   ::selection{background:var(--accent);color:#fff}
   .wrap{max-width:1160px;margin:0 auto;padding:14px 16px 28px}
-  .topbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.86);
-          backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);
+  .topbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.8);
+          backdrop-filter:blur(12px) saturate(1.3);-webkit-backdrop-filter:blur(12px) saturate(1.3);
           border-bottom:1px solid var(--line);transition:background .25s ease}
-  [data-theme="dark"] .topbar{background:rgba(15,18,24,.82)}
+  [data-theme="dark"] .topbar{background:rgba(15,18,24,.8)}
   .topbar-in{max-width:1160px;margin:0 auto;padding:10px 16px;display:flex;
              align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:10px;min-width:0}
   .logo{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center;
-        background:linear-gradient(135deg,#185FA5,#4a9eed);box-shadow:0 2px 10px rgba(24,95,165,.3)}
+        background:linear-gradient(135deg,#1d4ed8,#60a5fa);box-shadow:0 2px 10px rgba(29,78,216,.25)}
   .logo svg{width:19px;height:19px}
   h1{font-size:16px;font-weight:600;white-space:nowrap;letter-spacing:.01em}
   .meta{font-size:12px;color:var(--sub)}
   .brand .meta{margin-top:1px}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;
-       padding:0 13px;border-radius:9px;border:1px solid transparent;font-family:inherit;
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;
+       padding:0 14px;border-radius:8px;border:1px solid transparent;font-family:inherit;
        font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;text-decoration:none;
-       background:var(--accent);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.1);
-       transition:transform .15s cubic-bezier(.2,.7,.4,1),box-shadow .15s ease,
-                  background .15s ease,border-color .15s ease,color .15s ease}
-  .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(24,95,165,.28)}
-  .btn:active{transform:translateY(0);box-shadow:none}
+       background:var(--accent);color:#fff;box-shadow:0 1px 2px rgba(15,23,42,.12);
+       transition:background .15s ease,box-shadow .15s ease,border-color .15s ease,
+                  color .15s ease,transform .12s ease}
+  .btn:hover{background:#1e40af;box-shadow:0 2px 8px rgba(29,78,216,.25)}
+  [data-theme="dark"] .btn:hover{background:#2563eb}
+  .btn:active{transform:scale(.97);box-shadow:none}
   .btn.ghost{background:var(--card);color:var(--text);border-color:var(--line);box-shadow:none}
-  .btn.ghost:hover{border-color:var(--accent);color:var(--accent);box-shadow:none}
+  .btn.ghost:hover{background:var(--hover);border-color:#cbd5e1;color:var(--text);box-shadow:none}
+  [data-theme="dark"] .btn.ghost:hover{border-color:#334155;background:#1d2330}
   .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
   .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px;
        box-shadow:var(--shadow);transition:transform .16s cubic-bezier(.2,.7,.4,1)}
@@ -102,11 +105,17 @@
   .codebox input:focus{outline:none;border-color:var(--accent)}
   .empty{padding:30px;text-align:center;color:var(--sub);font-size:13px}
   .err{padding:30px;text-align:center;color:var(--up);font-size:13px}
+  @media (max-width:860px){
+    .topbar-in{padding:9px 12px}
+    h1{font-size:15px}
+    .wrap{padding:12px 14px 24px}
+  }
   @media (max-width:560px){
     .cards{grid-template-columns:repeat(2,1fr)}
     th,td{padding:9px 7px}
     .wrap{padding:12px 12px 24px}
     .topbar-in{padding:9px 12px}
+    h1{font-size:14px}
   }
 </style>
 </head>
