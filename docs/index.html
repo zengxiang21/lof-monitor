@@ -16,6 +16,22 @@
     --bg:#f8f9fb; --card:#ffffff; --line:#e8eaf0; --text:#1a1d26;
     --sub:#6b7280; --up:#e0453a; --down:#1a9e54; --accent:#185FA5;
   }
+  /* 暗色模式（右上角 🌙 切换，localStorage 记忆） */
+  [data-theme="dark"]{
+    --bg:#0f1218; --card:#171b24; --line:#262c3a; --text:#e6e8ee;
+    --sub:#9aa3b2; --up:#f0554a; --down:#2ec06b; --accent:#4a9eff;
+  }
+  [data-theme="dark"] tbody tr:active{background:#1d2430}
+  [data-theme="dark"] .tag.prem{background:#3a1d1c;color:#f0554a}
+  [data-theme="dark"] .tag.disc{background:#122e20;color:#2ec06b}
+  [data-theme="dark"] .src{background:#232a38;color:#9aa3b2}
+  [data-theme="dark"] .src.a{background:#22331a;color:#8fca5c}
+  [data-theme="dark"] .navtag.lag{background:#3a2a12;color:#e0a35a}
+  [data-theme="dark"] .navtag.dead{background:#262b33;color:#8a919c}
+  [data-theme="dark"] .detail{background:#131722}
+  [data-theme="dark"] .rtabs button{background:#171b24;color:#9aa3b2}
+  [data-theme="dark"] .rchart{background:#131722}
+  [data-theme="dark"] .star{color:#5a6472}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);
        font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px}
@@ -41,11 +57,17 @@
   thead th[data-key]:active{color:var(--accent)}
   th.asc::after{content:" ▲";font-size:9px;color:var(--accent)}
   th.desc::after{content:" ▼";font-size:9px;color:var(--accent)}
-  th:nth-child(2),td:nth-child(2){text-align:left;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+  th:nth-child(3),td:nth-child(3){text-align:left;max-width:150px;overflow:hidden;text-overflow:ellipsis}
   td{padding:10px 8px;font-size:13px;text-align:right;border-bottom:1px solid var(--line);
      white-space:nowrap}
   tbody tr{cursor:pointer}
   tbody tr:active{background:#f3f6fb}
+  /* 自选关注：星标列（第 1 列）+ 关注行高亮 */
+  .star{color:#c9ced8;cursor:pointer;font-size:15px;padding:0 2px;width:22px;
+        -webkit-user-select:none;user-select:none}
+  .star.on{color:#f0b429}
+  tbody tr.watched td{background:#fffaf0}
+  [data-theme="dark"] tbody tr.watched td{background:#1f2410}
   .up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--sub)}
   .tag{display:inline-block;font-size:11px;border-radius:4px;padding:1px 6px;margin-left:6px}
   .tag.prem{background:#fdeceb;color:var(--up)}
@@ -79,7 +101,7 @@
   .empty{padding:40px;text-align:center;color:var(--sub);font-size:13px}
   @media (max-width:560px){
     .opt{display:none}          /* 手机端精简：成交额、T-1净值、份额Δ */
-    th:nth-child(2),td:nth-child(2){max-width:104px;overflow:hidden;text-overflow:ellipsis}
+    th:nth-child(3),td:nth-child(3){max-width:104px;overflow:hidden;text-overflow:ellipsis}
     th,td{padding:10px 6px}
     .spk{width:44px}
   }
@@ -102,6 +124,7 @@
     <button class="btn" id="sharesBtn" title="从深交所/上交所刷新全市场场内份额">刷新份额</button>
     <button class="btn" id="pushBtn" style="background:#fff;color:var(--accent);border:1px solid var(--accent)" title="企业微信推送记录（未配置 webhook 时为记录模式）">推送记录</button>
     <a class="btn" href="calibration.html" style="background:#fff;color:var(--accent);border:1px solid var(--accent);text-decoration:none" title="估算误差回测与 β 校准面板">误差回测</a>
+    <button class="btn" id="themeBtn" style="background:#fff;color:var(--accent);border:1px solid var(--accent);padding:7px 10px" title="切换暗色/亮色模式">🌙</button>
   </header>
 
   <div class="tabs" id="tabs"></div>
@@ -127,11 +150,19 @@
     <div id="pickBody"><div class="meta">筛选中…</div></div>
   </div>
 
+  <div class="card" id="perfCard" style="margin-top:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3 style="margin:0">信号战绩 <span class="meta" id="perfMeta"></span></h3>
+    </div>
+    <div id="perfBody"><div class="meta">加载中…</div></div>
+  </div>
+
   <div class="card">
     <div class="swipe" id="swipe">← 左右滑动查看全部列 →</div>
     <div class="tblwrap">
     <table>
       <thead><tr>
+        <th class="star" title="点击 ☆ 加入自选关注（仅存本机）">☆</th>
         <th data-key="code">代码</th><th data-key="name">名称</th><th data-key="price">现价</th><th data-key="change_pct">涨跌幅</th>
         <th class="opt" data-key="amount">成交额</th><th class="opt" data-key="nav">T-1净值</th><th data-key="premium">T-1溢价</th>
         <th data-key="est_premium">估算溢价<span class="src">P1</span></th><th class="spk">走势</th>
@@ -148,15 +179,39 @@
       份额Δ=场内份额较上一交易日变动（收盘后更新）：<b>份额激增=套利资金正在涌入，比溢价率更领先</b>（深市深交所、沪市上交所）。
       日限额=单日累计购买上限（天天基金交易页，每日 9:10/15:10 刷新；<b>不限</b>=无上限）。<b>限额突涨/突降往往是套利窗口开关</b>，异动见 /api/limits/changes。
       估算净值已按 <b>β 校准</b>（每日 22:45 用官方净值回归校准系数，样本≥5 天启用个体 β，否则组级兜底；展开行可见 β 与近期误差）。
-      <b>点击表头可按该列排序，再点一次切换升/降序</b>（自动记住上次选择）。</div>
+      <b>点击表头可按该列排序，再点一次切换升/降序</b>（自动记住上次选择）。
+      点击行首 <b>☆ 加入自选关注</b>（仅存本机浏览器，不参与推送），关注行高亮，顶部"☆ 关注"chip 可筛选。
+      右上角 <b>🌙 切换暗色模式</b>。信号战绩卡展示每日精选的 T+2 真实盈亏回填。</div>
   </div>
 </div>
 
 <script>
 const CATS = ["全部","原油","有色","海外","港股","科技","A股"];
 let state = { cat:"全部", sort:"premium", sortKey:"premium", sortDir:"desc",
-              rows:[], counts:{}, updatedTs:0, open:null,
+              rows:[], counts:{}, updatedTs:0, open:null, onlyWatch:false,
               mode:"api", hist:{}, histTs:0, notice:null, ranges:null };
+
+// —— 自选关注（localStorage，仅存本机，不参与推送） ——
+let watch = new Set();
+try{ watch = new Set(JSON.parse(localStorage.getItem("lof-watch") || "[]")); }catch(e){}
+function saveWatch(){ try{ localStorage.setItem("lof-watch", JSON.stringify([...watch])); }catch(e){} }
+
+// —— 暗色模式（localStorage 记忆） ——
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  const b = document.getElementById("themeBtn");
+  if (b) b.textContent = t === "dark" ? "☀️" : "🌙";
+  const m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.content = t === "dark" ? "#0f1218" : "#f8f9fb";
+}
+let curTheme = "light";
+try{ curTheme = localStorage.getItem("lof-theme") || "light"; }catch(e){}
+applyTheme(curTheme);
+document.getElementById("themeBtn").onclick = ()=>{
+  curTheme = curTheme === "dark" ? "light" : "dark";
+  try{ localStorage.setItem("lof-theme", curTheme); }catch(e){}
+  applyTheme(curTheme);
+};
 
 const fmtPct = v => v==null ? "—" : (v>0?"+":"") + v.toFixed(2) + "%";
 const fmtAmt = v => v==null ? "—" : (v>=1e8 ? (v/1e8).toFixed(2)+"亿" : (v/1e4).toFixed(0)+"万");
@@ -300,6 +355,7 @@ async function load(){
   const meta = document.getElementById("meta");
   state.notice = null;
   loadPick();
+  loadPerf();
   try{
     if (state.mode === "static"){
       const s = await getJSON(`data/snapshot.json?t=${Date.now()}`, {}, 15000);
@@ -342,6 +398,12 @@ async function load(){
 function renderTabs(){
   const el = document.getElementById("tabs");
   el.innerHTML = "";
+  // 关注筛选chip（置顶）
+  const w = document.createElement("button");
+  w.className = "tab" + (state.onlyWatch ? " on" : "");
+  w.textContent = `☆ 关注(${watch.size})`;
+  w.onclick = ()=>{ state.onlyWatch = !state.onlyWatch; state.open = null; renderTable(); };
+  el.appendChild(w);
   CATS.forEach(c=>{
     const n = c==="全部" ? state.rows.length : (state.counts[c]||0);
     const b = document.createElement("button");
@@ -365,14 +427,24 @@ function renderTable(){
   };
   const tb = document.getElementById("tbody");
   let rows = state.cat==="全部" ? state.rows : state.rows.filter(r=>r.category===state.cat);
+  if (state.onlyWatch) rows = rows.filter(r=>watch.has(r.code));
   rows = sortRows(rows);
-  document.getElementById("empty").hidden = rows.length > 0;
+  const emptyEl = document.getElementById("empty");
+  emptyEl.hidden = rows.length > 0;
+  if (!rows.length){
+    emptyEl.textContent = state.onlyWatch
+      ? "暂无关注标的——点击表格左侧 ☆ 添加自选（仅存本机，不参与推送）"
+      : "暂无数据，点击右上角手动刷新";
+  }
   tb.innerHTML = "";
   rows.forEach(r=>{
     const tr = document.createElement("tr");
+    const watched = watch.has(r.code);
+    if (watched) tr.className = "watched";
     const srcTag = r.est_source === 'official' ? '<span class="src a">官方</span>'
                  : r.est_source === 'anchor'   ? '<span class="src">锚点</span>' : '';
     tr.innerHTML = `
+      <td class="star${watched?" on":""}" title="${watched?"取消关注":"加入自选"}">${watched?"★":"☆"}</td>
       <td>${r.code}</td><td>${r.name||""}</td>
       <td class="${cls(r.change_pct)}">${r.price ?? "—"}</td>
       <td class="${cls(r.change_pct)}">${fmtPct(r.change_pct)}</td>
@@ -386,6 +458,13 @@ function renderTable(){
       <td class="opt sh">${fmtShares(r.shares)}${r.share_chg_pct!=null && Math.abs(r.share_chg_pct)>=1 ? `<span class="${cls(r.share_chg_pct)}">${fmtPct(r.share_chg_pct)}</span>`:""}</td>
       <td class="sgzt">${r.sgzt || "—"}${r.max_amt!=null && r.sgzt!=="开放申购" ? ` <span class="sgzt">${fmtLimit(r.max_amt)}</span>` : ""}</td>
       <td class="opt sh">${fmtLimit(r.max_amt)}</td>`;
+    // 星标点击：切换自选（阻止行展开）
+    tr.querySelector(".star").onclick = (ev)=>{
+      ev.stopPropagation();
+      if (watch.has(r.code)) watch.delete(r.code); else watch.add(r.code);
+      saveWatch();
+      renderTabs(); renderTable();
+    };
     tr.onclick = ()=>toggleDetail(r.code, tr);
     tb.appendChild(tr);
     if(state.open === r.code) insertDetail(tr, r.code);
@@ -432,7 +511,7 @@ async function insertDetail(tr, code){
   }catch(e){
     const tr2 = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 12; td.className = "detail";
+    td.colSpan = 13; td.className = "detail";
     td.innerHTML = `<div class="estline">历史数据加载失败：${e.message}</div>`;
     tr2.appendChild(td); tr.after(tr2);
     return;
@@ -455,7 +534,7 @@ async function insertDetail(tr, code){
       : `<div class="estline">实时估算：暂无（该基金无官方估值、未配置锚点、且无持仓明细，多为债券/货币型）</div>`;
     const tr2 = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 12; td.className = "detail";
+    td.colSpan = 13; td.className = "detail";
     td.innerHTML = `<h3>${code} ${cur.name||""} · 历史快照（最近 ${items.length} 次，每分钟一次）</h3>${estHtml}` +
       `<div class="rtabs" id="rt-${code}">` +
         RANGES.map(d=>`<button data-d="${d}" class="${d===7?'on':''}">${d===1?'日内':d+'天'}</button>`).join("") +
@@ -742,6 +821,9 @@ async function loadPick(){
       `<div class="meta" style="margin-top:6px">现价 ${p.price} · 估算净值 ${estTxt} · T-1溢价 ${t1Txt} · 日成交额 ${amt}</div>` +
       `<div class="meta" style="margin-top:4px">日限额 ${limit} · ${p.sgzt || ""} · 份额Δ ${chgTxt}` +
       (p.crowded ? ` · <span style="color:var(--down)">拥挤信号，谨慎</span>` : "") + `</div>` +
+      (p.net_premium != null ? `<div class="meta" style="margin-top:4px">预估净收益 <b class="${p.net_premium>0?'up':'down'}">${p.net_premium>0?'+':''}${p.net_premium.toFixed(2)}%</b>` +
+        `（已扣申赎费约 ${p.fee_pct != null ? p.fee_pct : 0.18}%）· 10 万本金约赚 <b class="${p.net_profit>0?'up':'down'}">¥${(p.net_profit||0).toLocaleString()}</b></div>` : "") +
+      (p.nav_lag_warn ? `<div class="meta" style="margin-top:4px"><span class="navtag lag">净值滞后${p.nav_lag_days}天</span> ${p.nav_lag_msg || "溢价含水分，申购前复核"}</div>` : "") +
       `<div class="meta" style="margin-top:4px">节奏：14:30 后复核溢价 → 15:00 前申购 → T+2 开盘卖出</div>`;
     if (p.passed_list && p.passed_list.length > 1){
       body.insertAdjacentHTML("beforeend",
@@ -776,6 +858,57 @@ async function loadPick(){
     }
   }catch(e){
     document.getElementById("pickMeta").textContent = "加载失败";
+  }
+}
+
+// ---------- 信号战绩卡片（T+2 回填的净收益/胜率） ----------
+async function loadPerf(){
+  const body = document.getElementById("perfBody");
+  const meta = document.getElementById("perfMeta");
+  try{
+    const d = await getJSON(`data/performance.json?t=${Date.now()}`, {}, 15000);
+    const sigs = d.signals || [];
+    const st = d.stats;
+    meta.textContent = st
+      ? `已回填 ${st.settled} 笔 · 待回填 ${st.pending || 0} 笔`
+      : (sigs.length ? "等待 T+2 回填" : "");
+    if (!sigs.length){
+      body.innerHTML = '<div class="meta">尚无信号——从下一次每日精选（交易日 14:45）开始记录，' +
+        'T+2 收盘后自动回填真实盈亏，跑一段时间即可验证五关选股是否真的赚钱</div>';
+      return;
+    }
+    let html = "";
+    if (st){
+      html += `<div class="rstat">
+        <span>已回填 <b>${st.settled}</b> 笔</span>
+        <span>胜率 <b class="up">${st.win_rate}%</b>（${st.wins} 胜 ${st.settled - st.wins} 负）</span>
+        <span>平均净收益 <b class="${st.avg_net_pct > 0 ? 'up' : 'down'}">${st.avg_net_pct > 0 ? '+' : ''}${st.avg_net_pct.toFixed(2)}%</b></span>
+        <span>10 万累计 <b class="${st.total_profit >= 0 ? 'up' : 'down'}">${st.total_profit >= 0 ? '盈' : '亏'} ¥${Math.abs(st.total_profit).toLocaleString()}</b></span>
+      </div>`;
+    }
+    html += `<div class="tblwrap"><table><thead><tr>
+      <th>信号日期</th><th>代码/名称</th><th>信号溢价</th><th>卖出（T+2开盘）</th>
+      <th>净收益</th><th>10万盈亏</th><th>结果</th>
+    </tr></thead><tbody>`;
+    for (const s of sigs.slice(0, 20)){
+      const settled = s.status === "settled";
+      const net = settled ? s.net_pct : null;
+      const prof = settled ? (s.net_profit || 0) : null;
+      const netCls = net == null ? "flat" : (net > 0 ? "up" : "down");
+      html += `<tr>
+        <td>${s.date || ""}</td><td>${s.code} ${s.name || ""}</td>
+        <td class="up">+${(s.premium ?? 0).toFixed(2)}%</td>
+        <td>${settled ? `${s.sell_price} <span class="sgzt">${(s.sell_date || "").slice(5)}</span>` : "待回填"}</td>
+        <td class="${netCls}">${net == null ? "—" : (net > 0 ? '+' : '') + net.toFixed(2) + '%'}</td>
+        <td class="${prof == null ? "flat" : (prof >= 0 ? "up" : "down")}">${prof == null ? "—" : (prof >= 0 ? '+' : '-') + '¥' + Math.abs(prof).toLocaleString()}</td>
+        <td>${settled ? (s.win ? '<span class="up">胜</span>' : '<span class="down">负</span>') : '<span class="flat">持有中</span>'}</td>
+      </tr>`;
+    }
+    html += "</tbody></table></div>";
+    if (sigs.length > 20) html += `<div class="meta" style="padding:6px 4px">仅显示最近 20 条，完整数据见推送记录</div>`;
+    body.innerHTML = html;
+  }catch(e){
+    meta.textContent = "加载失败";
   }
 }
 
