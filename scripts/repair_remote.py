@@ -76,8 +76,23 @@ def git_blob_sha(path: str) -> str:
     return out.split()[2]
 
 
+def clean_content(rel: str) -> bytes:
+    """取 git 规范化后的内容（clean/LF，与 ls-tree/blob sha 同口径）。
+
+    上传必须用 clean 内容而非工作树原始字节：Windows 工作树可能是 CRLF，
+    直接上传会造成"远端 CRLF vs 本地 LF sha"的永久行尾噪音——文件传了
+    也清不出待传列表（每次 dry-run 依旧报差异）。未跟踪文件
+    （docs/data 导出物）回退为原始字节。
+    """
+    r = subprocess.run(["git", "cat-file", "blob", f"HEAD:{rel}"], cwd=ROOT,
+                       capture_output=True, check=False)
+    if r.returncode == 0 and r.stdout:
+        return r.stdout
+    return (ROOT / rel).read_bytes()
+
+
 def upload(rel: str, pat: str) -> str:
-    content = base64.b64encode((ROOT / rel).read_bytes()).decode()
+    content = base64.b64encode(clean_content(rel)).decode()
     sha = None
     try:
         r = api("GET", f"/contents/{rel}?ref={BRANCH}", pat)
