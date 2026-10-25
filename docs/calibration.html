@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#f8f9fb">
+<meta name="theme-color" content="#f5f6f8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23185FA5'/%3E%3Cpath d='M7 21l5-6 4 3 6-8' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,74 +12,118 @@
 <title>估算误差回测 · β 校准 — LOF 套利监控</title>
 <style>
   :root{
-    --bg:#f8f9fb; --card:#ffffff; --line:#e8eaf0; --text:#1a1d26;
-    --sub:#6b7280; --up:#e0453a; --down:#1a9e54; --accent:#185FA5;
+    --bg:#f5f6f8; --card:#ffffff; --line:#e6e8ee; --line2:#eef0f4;
+    --text:#16181d; --sub:#6f7684; --up:#d93a2e; --down:#0f9d58; --accent:#185FA5;
+    --hover:#f6f8fb; --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px -6px rgba(16,24,40,.08);
+    --soft-up:#fdeceb; --soft-down:#e7f6ee; --soft-warn:#fff4e2; --soft-accent:#eaf1fa;
+    --radius:14px;
+  }
+  [data-theme="dark"]{
+    --bg:#0f1218; --card:#171b24; --line:#262c3a; --line2:#1f2531;
+    --text:#e6e8ee; --sub:#8f98a8; --up:#f0554a; --down:#2ec06b; --accent:#4a9eff;
+    --hover:#1b2130; --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px -8px rgba(0,0,0,.5);
+    --soft-up:#33191a; --soft-down:#12291d; --soft-warn:#33260f; --soft-accent:#152336;
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
   body{background:var(--bg);color:var(--text);
-       font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px}
-  .wrap{max-width:1140px;margin:0 auto;padding:12px}
-  header{display:flex;align-items:center;gap:10px;padding:10px 4px 12px;flex-wrap:wrap}
-  h1{font-size:17px;font-weight:600;flex:1;min-width:180px}
-  .meta{font-size:12px;color:var(--sub);margin-top:2px;width:100%}
-  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;
-       padding:7px 14px;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
-  .btn.ghost{background:var(--card);color:var(--accent);border:1px solid var(--accent)}
-  .btn:active{opacity:.85}
+       font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.5;
+       -webkit-font-smoothing:antialiased;transition:background-color .25s ease,color .25s ease}
+  ::selection{background:var(--accent);color:#fff}
+  .wrap{max-width:1160px;margin:0 auto;padding:14px 16px 28px}
+  .topbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.86);
+          backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);
+          border-bottom:1px solid var(--line);transition:background .25s ease}
+  [data-theme="dark"] .topbar{background:rgba(15,18,24,.82)}
+  .topbar-in{max-width:1160px;margin:0 auto;padding:10px 16px;display:flex;
+             align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .logo{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center;
+        background:linear-gradient(135deg,#185FA5,#4a9eed);box-shadow:0 2px 10px rgba(24,95,165,.3)}
+  .logo svg{width:19px;height:19px}
+  h1{font-size:16px;font-weight:600;white-space:nowrap;letter-spacing:.01em}
+  .meta{font-size:12px;color:var(--sub)}
+  .brand .meta{margin-top:1px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;
+       padding:0 13px;border-radius:9px;border:1px solid transparent;font-family:inherit;
+       font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;text-decoration:none;
+       background:var(--accent);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.1);
+       transition:transform .15s cubic-bezier(.2,.7,.4,1),box-shadow .15s ease,
+                  background .15s ease,border-color .15s ease,color .15s ease}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(24,95,165,.28)}
+  .btn:active{transform:translateY(0);box-shadow:none}
+  .btn.ghost{background:var(--card);color:var(--text);border-color:var(--line);box-shadow:none}
+  .btn.ghost:hover{border-color:var(--accent);color:var(--accent);box-shadow:none}
   .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px;
+       box-shadow:var(--shadow);transition:transform .16s cubic-bezier(.2,.7,.4,1)}
+  .kpi:hover{transform:translateY(-2px)}
   .kpi .k{font-size:11px;color:var(--sub)}
-  .kpi .v{font-size:19px;font-weight:600;margin-top:3px}
-  .kpi .v small{font-size:11px;color:var(--sub);font-weight:400}
-  .sect{background:var(--card);border:1px solid var(--line);border-radius:12px;
-        padding:12px;margin-bottom:12px}
-  .sect h2{font-size:14px;font-weight:600;margin-bottom:4px}
-  .sect .hint{font-size:11px;color:var(--sub);line-height:1.6;margin-bottom:10px}
+  .kpi .v{font-size:19px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+  .sect{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+        box-shadow:var(--shadow);padding:14px 16px;margin-bottom:12px}
+  .sect h2{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .sect h2 .bar{width:3px;height:14px;border-radius:2px;background:var(--accent);flex:0 0 auto}
+  .sect .hint{font-size:11px;color:var(--sub);line-height:1.7;margin-bottom:10px}
   .gbetas{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-  .gb{background:#eef4fb;border-radius:8px;padding:6px 10px;font-size:12px}
-  .gb b{color:var(--accent)}
+  .gb{background:var(--soft-accent);color:var(--accent);border-radius:8px;padding:6px 10px;font-size:12px}
+  .gb b{font-weight:700}
   .dist{display:flex;align-items:flex-end;gap:8px;height:110px;padding-top:8px}
   .dcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
-  .dbar{width:100%;max-width:54px;background:var(--accent);border-radius:5px 5px 0 0;min-height:2px}
+  .dbar{width:100%;max-width:54px;background:linear-gradient(180deg,var(--accent),#6db3f0);
+        border-radius:5px 5px 0 0;min-height:2px}
   .dlbl{font-size:10px;color:var(--sub);white-space:nowrap}
-  .dnum{font-size:11px;color:var(--text)}
+  .dnum{font-size:11px;color:var(--text);font-variant-numeric:tabular-nums}
   .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
   table{width:100%;border-collapse:collapse;min-width:560px}
-  th{font-size:12px;color:var(--sub);font-weight:500;padding:9px 8px;text-align:right;
-     border-bottom:1px solid var(--line);white-space:nowrap}
-  td{padding:9px 8px;font-size:13px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{font-size:11px;color:var(--sub);font-weight:500;padding:9px 10px;text-align:right;
+     border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+  td{padding:10px;font-size:13px;text-align:right;border-bottom:1px solid var(--line2);
+     white-space:nowrap;font-variant-numeric:tabular-nums}
   th:nth-child(2),td:nth-child(2){text-align:left;max-width:150px;overflow:hidden;text-overflow:ellipsis}
-  tbody tr{cursor:pointer}
-  tbody tr:hover{background:#f3f6fb}
-  tbody tr.on{background:#eaf1fa}
+  tbody tr{cursor:pointer;transition:background .12s ease}
+  tbody tr:hover{background:var(--hover)}
+  tbody tr.on{background:var(--soft-accent)}
   .up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--sub)}
   .src{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin-left:4px;
        background:#eef2f7;color:var(--sub);vertical-align:1px}
-  .lv{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin-left:4px}
+  [data-theme="dark"] .src{background:#232a38}
+  .lv{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin-left:4px;font-weight:500}
   .lv.fund{background:#eaf3de;color:#3B6D11}
-  .lv.group{background:#fff1e0;color:#B25E09}
+  .lv.group{background:var(--soft-warn);color:#B25E09}
   .drill{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px}
   .drill h3{font-size:13px;margin-bottom:8px}
   .drill .betainfo{font-size:12px;color:var(--sub);line-height:1.8;margin-bottom:8px}
   .drill .betainfo b{color:var(--text)}
   .codebox{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-  .codebox input{flex:1;min-width:140px;border:1px solid var(--line);border-radius:8px;
-                 padding:7px 10px;font-size:13px}
+  .codebox input{flex:1;min-width:140px;border:1px solid var(--line);border-radius:9px;
+                 padding:7px 11px;font-size:13px;font-family:inherit;background:var(--card);color:var(--text);
+                 transition:border-color .15s}
+  .codebox input:focus{outline:none;border-color:var(--accent)}
   .empty{padding:30px;text-align:center;color:var(--sub);font-size:13px}
   .err{padding:30px;text-align:center;color:var(--up);font-size:13px}
   @media (max-width:560px){
     .cards{grid-template-columns:repeat(2,1fr)}
-    th,td{padding:9px 6px}
+    th,td{padding:9px 7px}
+    .wrap{padding:12px 12px 24px}
+    .topbar-in{padding:9px 12px}
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <span class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M4 17l5-6 4 3 7-9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <div>
+        <h1>估算误差回测 · β 校准</h1>
+        <div class="meta" id="meta">加载中…</div>
+      </div>
+    </div>
     <a class="btn ghost" href="index.html">← 返回监控台</a>
-    <h1>估算误差回测 · β 校准</h1>
-    <div class="meta" id="meta">加载中…</div>
-  </header>
+  </div>
+</header>
+<div class="wrap">
 
   <div class="cards" id="cards">
     <div class="kpi"><div class="k">校准覆盖基金</div><div class="v" id="kFunds">—</div></div>
@@ -89,19 +133,19 @@
   </div>
 
   <div class="sect">
-    <h2>组级 β（按估算来源）</h2>
+    <h2><span class="bar"></span>组级 β（按估算来源）</h2>
     <div class="hint">calibrated = raw × β。β&lt;1 表示该来源系统性高估净值（校准后下调），β&gt;1 则上调；样本不足 5 天的基金用所属组 β 兜底。</div>
     <div class="gbetas" id="gbetas"><span class="dlbl">加载中…</span></div>
   </div>
 
   <div class="sect">
-    <h2>误差分布（最近一次配对，|估算-官方| / 官方）</h2>
+    <h2><span class="bar"></span>误差分布（最近一次配对，|估算-官方| / 官方）</h2>
     <div class="hint">每日 22:45 按净值日期配对"当日最后一笔盘中估算 vs 官方净值"；QDII 滞后净值已归位到对应日期。</div>
     <div class="dist" id="dist"></div>
   </div>
 
   <div class="sect">
-    <h2>误差 Top 10（点击行下钻单只回测）</h2>
+    <h2><span class="bar"></span>误差 Top 10（点击行下钻单只回测）</h2>
     <div class="hint">误差大 = 校准前估算偏离大；启用个体 β 后将被自动修正。</div>
     <div class="tblwrap">
       <table>
