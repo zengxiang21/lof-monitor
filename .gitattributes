@@ -1,0 +1,19 @@
+# 统一行尾：仓库内恒存 LF；eol=lf 同时保证 Windows 检出也是 LF
+# （修复 repair_remote "传了也清不掉" 的行尾噪音：工作树 CRLF 曾被原样
+#  上传到远端，与 LF 口径的 blob sha 永远对不上）
+* text=auto eol=lf
+
+# 二进制资源显式声明，避免被 text=auto 误判损坏
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg text
+*.db binary
+*.db-wal binary
+*.db-shm binary
+*.gz binary
+*.woff binary
+*.woff2 binary
