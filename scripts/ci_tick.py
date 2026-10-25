@@ -10,6 +10,10 @@
     "30 13,14 * * 1-5"  nav      净值 + 申赎状态 + 估算误差配对（21:30 / 22:30）
     "45 14 * * 1-5"     calibrate β 校准重建（22:45）
     "40 14 * * 1-5"     shares   场内份额（22:40，SZSE + SSE + EM 兜底）
+    "45 6 * * 1-5"     push     14:45 每日精选（收盘前）
+    "55 6 * * 1-5"     push     14:55 执行确认（仅变更才推）
+    "10 8 * * 1-5"     perf     16:10 信号 T+2 回填写入
+    "40 7 * * 5"       push     周五 15:40 套利信号周报
 
 数据落 data/store/（JSONL 增量存储），由 export_static.py --store 导出
 docs/data/，提交推送后 GitHub Pages 自动部署（legacy 分支模式）。
@@ -51,6 +55,9 @@ CRON_TASK = {
     "45 14 * * 1-5": "calibrate,push",
     "40 14 * * 1-5": "shares,push",
     "45 6 * * 1-5": "push",          # 14:45 每日精选（收盘前）
+    "55 6 * * 1-5": "push",          # 14:55 执行确认（仅变更才推）
+    "10 8 * * 1-5": "perf,push",     # 16:10 信号 T+2 回填写入
+    "40 7 * * 5": "push",            # 周五 15:40 套利信号周报
 }
 
 STORE_DIR = ROOT / "data" / "store"
@@ -169,6 +176,7 @@ def task_nav(store: Store) -> bool:
             return code, None
 
     pairs: dict[str, list] = {}
+    navs_by_date: dict[str, dict[str, dict]] = {}
     ok = 0
     with ThreadPoolExecutor(max_workers=6) as ex:
         for code, rec in ex.map(_job, codes):
@@ -181,9 +189,15 @@ def task_nav(store: Store) -> bool:
                 # 误差配对：净值日期当日的最后一笔估算 × 今日官方净值
                 nd = rec.get("nav_date")
                 if nd:
+                    # 净值历史按"净值日期"记（QDII 的净值日期早于采集日期），
+                    # 供信号绩效回填查申购日官方净值
+                    navs_by_date.setdefault(nd, {})[code] = {
+                        "nav": rec["nav"], "nav_date": nd}
                     est = store.fund_est_on(code, nd)
                     if est and est.get("est_nav"):
                         pairs[code] = [est["est_nav"], rec["nav"]]
+    for nd, navs in navs_by_date.items():
+        store.append_nav_day(nd, navs)
     if pairs:
         store.append_errors_day(cn_date(), pairs)
     store.save_state()
@@ -309,6 +323,29 @@ def task_calibrate(store: Store) -> bool:
     return True
 
 
+# ---------- 任务：信号绩效回填（T+2 真实盈亏） ----------
+
+def task_perf(store: Store) -> bool:
+    """扫描 signals.jsonl，回填可结算信号，重写 performance.json。
+
+    每个交易日 16:10 由 cron 触发；内容变化才返回 dirty（触发导出提交）。
+    """
+    from app.performance import backfill
+    perf_path = store.root / "performance.json"
+    before = perf_path.read_bytes() if perf_path.exists() else b""
+    try:
+        payload = backfill(store)
+    except Exception as e:  # noqa: BLE001
+        _log(f"perf failed: {type(e).__name__}: {e}")
+        return False
+    after = perf_path.read_bytes() if perf_path.exists() else b""
+    stats = payload.get("stats") or {}
+    _log(f"perf: 信号 {len(payload.get('signals') or [])} 条，"
+         f"已回填 {stats.get('settled', 0)} 笔，胜率 {stats.get('win_rate', '—')}%，"
+         f"10万累计 ¥{stats.get('total_profit', 0):,}")
+    return before != after
+
+
 # ---------- 入口 ----------
 
 class StoreDB:
@@ -316,6 +353,7 @@ class StoreDB:
 
     def __init__(self, store: Store):
         self._s = store
+        self.store = store      # 裸 Store：performance 回填等需要原始数据接口
 
     def latest_quotes(self) -> list[dict]:
         return self._s.latest_rows()
@@ -360,6 +398,7 @@ TASKS = {
     "calibrate": task_calibrate,
     "status": task_nav,   # 申购状态随净值任务一并刷新
     "push": task_push,    # 企业微信推送评估（webhook 经 LOF_WECOM_WEBHOOK 注入）
+    "perf": task_perf,    # 信号 T+2 回填（performance.json）
 }
 
 
