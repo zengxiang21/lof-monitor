@@ -175,6 +175,27 @@ def _run_checks():
         n3 = pg.eval_on_selector_all("#tbody tr", "e => e.length")
         check("重置恢复全量", n3 > 2, f"rows={n3}")
 
+        # 11b. tabs 高亮即时跟随点击（旧实现只调 renderTable，要等 60s 刷新才纠正）
+        pg.click("#tabs button:nth-child(3)")   # 原油(11)
+        time.sleep(0.2)
+        on_list = pg.eval_on_selector_all("#tabs button",
+            "e => e.map(b => ({on: b.classList.contains('on'), t: b.textContent})).filter(x => x.on)")
+        check("点击分类高亮即时跟随", len(on_list) == 1 and on_list[0]["t"].startswith("原油"),
+              str(on_list))
+        # 关卡计数随分类联动（原油仅 11 只，计数应随之收敛）
+        g1 = pg.eval_on_selector_all("#gates .gate .g-c b", "e => e.map(x => +x.textContent)")
+        check("关卡计数随分类刷新", bool(g1) and g1[0] <= 11, str(g1))
+        # 关注 chip 高亮同样即时切换（关注与分类是可叠加的独立筛选，故只断言自身获得高亮）
+        pg.click("#tabs button:nth-child(1)")
+        time.sleep(0.2)
+        watch_on = pg.eval_on_selector("#tabs button:nth-child(1)",
+                                       "e => e.classList.contains('on')")
+        check("关注 chip 高亮即时跟随", watch_on is True)
+        pg.click("#tabs button:nth-child(1)")   # 取消关注筛选，复原
+        time.sleep(0.2)
+        pg.click("#tabs button:nth-child(2)")   # 回“全部”
+        time.sleep(0.2)
+
         # 12. 精选卡本金输入：手动算预计收益（1w/1k 简写 + 记忆）
         pin = pg.query_selector("#principalInput")
         check("本金输入框存在", pin is not None)
