@@ -741,3 +741,31 @@ pending 边界）全 PASS；scripts/test_web_ui.py 14 项浏览器实测全 PASS
 （线上偶发，重试即过）——改为 `wait_for_selector("#tabs button",
 timeout=30000)`，根因是 detectMode 的 API 探测失败重试（1.2s×2）
 + snapshot 拉取在冷 CDN 上超过 3 秒
+
+### UI 参考站改版：slate + brand 蓝设计语言 + 电脑/手机自适应（10-26，commit 9cc72ce）
+
+用户反馈"感觉 ui 还是很丑"，要求参考 http://124.223.215.49/dashboard
+的 UI 并自适应电脑/手机。已提取参考站设计令牌（React/Vite SPA，
+Tailwind v4 + shadcn/ui 风格）：
+
+- **色板**：亮色底 slate-50 `#f8fafc`、文字 slate 阶（`#0f172a`/`#64748b`）、
+  主色 brand-700 `#1d4ed8`；卡片白底 + 1px `#e2e8f0` 细边框 + 12px 圆角 +
+  近零阴影（`0 1px 2px rgba(15,23,42,.05)`）；涨红跌绿沿用 A 股惯例
+- **字体**：`Inter,-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei"`
+  （Inter 未引 webfont，避免国内 CDN 拖慢首屏，缺省回退系统字体）
+- **分类 tabs 改分段控件**：slate-100 底容器 + 白底选中 + 细阴影
+  （shadcn ToggleGroup 风），替代原蓝色实心 chip
+- **按钮 shadcn 风**：主色实心（hover 加深 #1e40af + 轻阴影）、幽灵
+  描边（hover 转 slate-100 底），去掉原来的 translateY 浮动
+- **徽标体系**：溢价/折价 tag、官方/锚点 src、净值滞后/停更 navtag、
+  申购状态圆点、星标关注色全部换 slate/emerald/amber 体系色
+- **theme-color/favicon/logo** 同步 brand 蓝；暗色模式 accent 调 #3b82f6
+- **自适应**：≤860px 顶栏按钮收拢（高度 30px/小字号）；≤560px 五关 2 列、
+  统计 3 列、卡片内边距统一收紧；新增 ≤400px 小屏档（大溢价数字 23px、
+  统计 2 列）；表格保留横向滑动 + 滑动提示
+- calibration.html 同步新设计系统；sw.js v19→v20；docs 三页全量同步
+
+**测试**：34 项 UI 回归全 PASS（含暗色 body `#0f1218`、五关 rows=2、
+本金输入链）；亮/五关全上/暗/移动端(390px)/校准页五截图人工核验；
+线上 verify_online 15 项全 PASS；repair_remote 只传 7 个 UI 文件
+（数据文件遵循云端最新原则跳过，其余为行尾噪音）
