@@ -11,6 +11,8 @@
 - history.json   每股最近 N 个快照点：走势迷你图数据源
 - calibration.json  β 校准总览 + 误差分布 + Top10 + 每只基金近 5 日误差
 - history_ranges.json  7/30/90 天区间降采样 + 统计（多日回看）
+- daily_pick.json      每日精选（五关选股 TOP1 + 过关榜单）
+- performance.json     信号战绩（T+2 回填的净收益/胜率统计）
 """
 from __future__ import annotations
 
@@ -49,7 +51,8 @@ def _read_jsonl(path: Path, limit: int = 100) -> list[dict]:
 
 def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
                    series: dict, ranges: dict, calibration: dict,
-                   push_items: list[dict] | None = None) -> dict:
+                   push_items: list[dict] | None = None,
+                   perf: dict | None = None) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     generated_at = datetime.now(timezone(timedelta(hours=8))).isoformat(timespec="seconds")
     counts: dict[str, int] = {}
@@ -102,8 +105,23 @@ def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
     (out_dir / "daily_pick.json").write_text(
         json.dumps({"generated_at": generated_at, "pick": pick},
                    ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    # 信号战绩（performance.json）：每日精选的 T+2 回填结果与统计；
+    # 尚未生成过（功能上线首日）时给空骨架，面板显示引导文案
+    (out_dir / "performance.json").write_text(
+        json.dumps(perf if perf is not None else
+                   {"generated_at": generated_at, "principal": None,
+                    "signals": [], "stats": None},
+                   ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     size = sum(p.stat().st_size for p in out_dir.glob("*.json"))
     return {"ok": True, "total": len(rows), "series": len(series), "bytes": size}
+
+
+def _perf_payload(store_root: Path) -> dict | None:
+    """读 performance.json（app/performance.py 生成）；不存在返回 None。"""
+    try:
+        return json.loads((store_root / "performance.json").read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return None
 
 
 # ---------- DB 模式（本机） ----------
@@ -133,7 +151,8 @@ def _export_db(out_dir: Path) -> dict:
     calibration = _calibration_from_db(db, rows)
     push_items = _read_jsonl(DATA_DIR / "push_records.jsonl")
     return _write_outputs(out_dir, rows, db.latest_ts(), series, ranges,
-                          calibration, push_items)
+                          calibration, push_items,
+                          _perf_payload(DATA_DIR))
 
 
 def _calibration_from_db(db, rows: list[dict]) -> dict:
@@ -213,7 +232,8 @@ def _export_store(out_dir: Path) -> dict:
     calibration = _calibration_from_store(store, rows)
     push_items = _read_jsonl(store.root / "push_records.jsonl")
     return _write_outputs(out_dir, rows, store.latest_ts(), series, ranges,
-                          calibration, push_items)
+                          calibration, push_items,
+                          _perf_payload(store.root))
 
 
 def _calibration_from_store(store, rows: list[dict]) -> dict:
