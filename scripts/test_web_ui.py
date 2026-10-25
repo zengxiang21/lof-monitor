@@ -2,8 +2,9 @@
 """test_web_ui.py — 面板新功能浏览器实测（暗色/自选/净收益/战绩卡）
 
 用法：先 `python -m http.server 8765 --directory web`，再跑本脚本。
-战绩卡用合成数据（1 条已回填 + 1 条持有中）验证渲染与浮动计算，
-测试结束后恢复空骨架，不污染真实数据。
+战绩卡用合成数据（1 条已回填 + 1 条持有中）验证渲染与浮动计算；
+snapshot.json 临时注入两条限额异动数据（真实数据当天无一达 20% 阈值），
+测试结束后按字节还原，不污染真实数据。
 """
 import json
 import subprocess
@@ -16,6 +17,7 @@ from playwright.sync_api import sync_playwright
 BASE = "http://127.0.0.1:8765/index.html"
 WEB_DATA = Path(__file__).resolve().parent.parent / "web" / "data"
 PERF_PATH = WEB_DATA / "performance.json"
+SNAP_PATH = WEB_DATA / "snapshot.json"
 fails = []
 
 SYNTH_PERF = {
@@ -40,6 +42,19 @@ SYNTH_PERF = {
 
 EMPTY_PERF = {"generated_at": "", "principal": None, "signals": [], "stats": None}
 
+SNAP_ORIG = SNAP_PATH.read_bytes()
+
+
+def patch_snapshot(orig: bytes) -> bytes:
+    """注入两条限额异动：501046 限额 +55%（红▲）/ 501085 限额 -30%（绿▼）。"""
+    d = json.loads(orig.decode("utf-8"))
+    for r in d["items"]:
+        if r["code"] == "501046":
+            r["limit_chg_pct"] = 55.0
+        elif r["code"] == "501085":
+            r["limit_chg_pct"] = -30.0
+    return json.dumps(d, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
 
 def check(name, cond, detail=""):
     print(f"[{'PASS' if cond else 'FAIL'}] {name} {detail}")
@@ -49,10 +64,12 @@ def check(name, cond, detail=""):
 
 def main():
     PERF_PATH.write_text(json.dumps(SYNTH_PERF, ensure_ascii=False), encoding="utf-8")
+    SNAP_PATH.write_bytes(patch_snapshot(SNAP_ORIG))
     try:
         _run_checks()
     finally:
         PERF_PATH.write_text(json.dumps(EMPTY_PERF, ensure_ascii=False), encoding="utf-8")
+        SNAP_PATH.write_bytes(SNAP_ORIG)   # 按字节还原，不污染真实数据
     print("\nRESULT:", "FAIL" if fails else "PASS", fails)
     sys.exit(1 if fails else 0)
 
@@ -176,7 +193,8 @@ def _run_checks():
         check("重置恢复全量", n3 > 2, f"rows={n3}")
 
         # 11b. tabs 高亮即时跟随点击（旧实现只调 renderTable，要等 60s 刷新才纠正）
-        pg.click("#tabs button:nth-child(3)")   # 原油(11)
+        # 子元素顺序：1=关注 2=限额异动 3=全部 4=原油 …
+        pg.click("#tabs button:nth-child(4)")   # 原油(11)
         time.sleep(0.2)
         on_list = pg.eval_on_selector_all("#tabs button",
             "e => e.map(b => ({on: b.classList.contains('on'), t: b.textContent})).filter(x => x.on)")
@@ -193,8 +211,84 @@ def _run_checks():
         check("关注 chip 高亮即时跟随", watch_on is True)
         pg.click("#tabs button:nth-child(1)")   # 取消关注筛选，复原
         time.sleep(0.2)
-        pg.click("#tabs button:nth-child(2)")   # 回“全部”
+        pg.click("#tabs button:nth-child(3)")   # 回“全部”
         time.sleep(0.2)
+
+        # 11c. 限额异动：chip 计数/筛选 + 涨跌角标（注入 501046 +55% / 501085 -30%）
+        chip_txt = pg.inner_text("#tabs button:nth-child(2)")
+        check("限额异动 chip 带实时计数", "限额异动(2)" in chip_txt, chip_txt)
+        pg.click("#tabs button:nth-child(2)")
+        time.sleep(0.4)
+        n_lc = pg.eval_on_selector_all("#tbody tr", "e => e.length")
+        check("限额异动筛选剩 2 行", n_lc == 2, f"rows={n_lc}")
+        badge_up = pg.eval_on_selector_all("#tbody tr td:nth-child(13) .lchg.up",
+                                           "e => e.map(x => x.textContent)")
+        badge_dn = pg.eval_on_selector_all("#tbody tr td:nth-child(13) .lchg.down",
+                                           "e => e.map(x => x.textContent)")
+        check("限额提高红▲角标", "▲55%" in badge_up, str(badge_up))
+        check("限额下调绿▼角标", "▼30%" in badge_dn, str(badge_dn))
+        pg.click("#tabs button:nth-child(2)")   # 取消筛选
+        time.sleep(0.3)
+        check("取消限额异动恢复全量",
+              pg.eval_on_selector_all("#tbody tr", "e => e.length") > 2)
+
+        # 11d. 搜索：代码/名称即时过滤 + 命中计数 + 空态 + 清空
+        pg.fill("#searchInput", "501046")
+        time.sleep(0.5)                          # 150ms 防抖 + 渲染
+        n_s = pg.eval_on_selector_all("#tbody tr", "e => e.length")
+        meta_s = pg.inner_text("#meta")
+        check("按代码搜索命中 1 行", n_s == 1, f"rows={n_s}")
+        check("meta 显示搜索命中数", "命中 1 只" in meta_s, meta_s[-60:])
+        check("清空按钮出现", pg.eval_on_selector("#searchClear", "e => !e.hidden") is True)
+        pg.fill("#searchInput", "科创")
+        time.sleep(0.5)
+        check("按名称搜索有结果",
+              pg.eval_on_selector_all("#tbody tr", "e => e.length") >= 1)
+        pg.fill("#searchInput", "不存在的基金xyz")
+        time.sleep(0.5)
+        check("搜索无结果走空态提示", "没有匹配" in (pg.text_content("#empty") or ""))
+        pg.click("#searchClear")
+        time.sleep(0.4)
+        check("清空搜索恢复全量",
+              pg.eval_on_selector_all("#tbody tr", "e => e.length") > 2)
+        # 查计算样式而非仅 hidden 属性：作者的 display 规则会覆盖 hidden 属性
+        # （.sclear 的 display:grid 曾导致 × 清空按钮在干净态依然可见）
+        check("清空后清空按钮真正隐藏",
+              pg.eval_on_selector("#searchClear",
+                  "e => e.hidden && getComputedStyle(e).display === 'none'") is True)
+
+        # 11e. 卡片视图：切换/数量/详情展开收起/星标/记忆/切回表格
+        # 表格态下卡片容器必须真正不可见（display:none），不能只靠 hidden 属性
+        check("表格态卡片容器隐藏",
+              pg.eval_on_selector("#cardsView",
+                  "e => getComputedStyle(e).display") == "none")
+        pg.click("#viewSwitch button[data-v='cards']")
+        time.sleep(0.5)
+        n_card = pg.eval_on_selector_all("#cardsView .fcard", "e => e.length")
+        check("卡片视图渲染全部行", n_card == 404, f"cards={n_card}")
+        check("卡片视图隐藏表格",
+              pg.eval_on_selector("#mainTable",
+                  "e => getComputedStyle(e.closest('.tblwrap')).display") == "none")
+        pg.click("#cardsView .fcard")            # 点开第一张卡详情
+        time.sleep(2)
+        det = pg.query_selector_all("#cardsView .card-detail")
+        check("卡片内展开详情", len(det) == 1 and "历史快照" in (det[0].text_content() or ""))
+        pg.click("#cardsView .fcard")            # 再点收起
+        time.sleep(0.5)
+        check("再点卡片收起详情",
+              pg.eval_on_selector_all("#cardsView .card-detail", "e => e.length") == 0)
+        before = pg.eval_on_selector_all("#cardsView .fcard.watched", "e => e.length")
+        pg.eval_on_selector_all("#cardsView .fcard .star", "e => e[e.length-1].click()")
+        time.sleep(0.5)
+        after = pg.eval_on_selector_all("#cardsView .fcard.watched", "e => e.length")
+        check("卡片内星标切换关注", after == before + 1, f"before={before} after={after}")
+        pg.click("#viewSwitch button[data-v='table']")
+        time.sleep(0.4)
+        check("切回表格显示主表",
+              pg.eval_on_selector("#mainTable",
+                  "e => getComputedStyle(e.closest('.tblwrap')).display") != "none")
+        check("视图选择本地记忆",
+              pg.evaluate("localStorage.getItem('lof-view')") == "table")
 
         # 12. 精选卡本金输入：手动算预计收益（1w/1k 简写 + 记忆）
         pin = pg.query_selector("#principalInput")
