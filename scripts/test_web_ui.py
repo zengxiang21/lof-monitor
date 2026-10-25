@@ -171,6 +171,29 @@ def _run_checks():
         n3 = pg.eval_on_selector_all("#tbody tr", "e => e.length")
         check("重置恢复全量", n3 > 2, f"rows={n3}")
 
+        # 12. 精选卡本金输入：手动算预计收益（1w/1k 简写 + 记忆）
+        pin = pg.query_selector("#principalInput")
+        check("本金输入框存在", pin is not None)
+        if pin:
+            pin.fill("2w")
+            time.sleep(0.3)
+            prof = pg.inner_text("#pickProfit")
+            check("2w=2万 预计收益", "1,006" in prof, prof)
+            pin.fill("1k")
+            time.sleep(0.3)
+            prof = pg.inner_text("#pickProfit")
+            check("1k=1千 预计收益", "50" in prof, prof)
+            pin.fill("abc")
+            time.sleep(0.3)
+            check("非法输入显示—", pg.inner_text("#pickProfit") == "—")
+            pin.fill("100,000")
+            pin.evaluate("e => e.blur()")
+            time.sleep(0.3)
+            prof = pg.inner_text("#pickProfit")
+            check("恢复10万收益", "5,029" in prof, prof)
+            saved = pg.evaluate("localStorage.getItem('lof-principal')")
+            check("本金本地记忆", saved == "100000", str(saved))
+
         pg.screenshot(path="shots/ui_test.png", full_page=False)
         b.close()
 
