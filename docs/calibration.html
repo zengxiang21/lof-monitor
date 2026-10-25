@@ -26,6 +26,8 @@
     --soft-up:#33191a; --soft-down:#12291d; --soft-warn:#33260f; --soft-accent:#152336;
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  /* hidden 属性必须压过作者的 display 规则，否则 el.hidden=true 不生效 */
+  [hidden]{display:none !important}
   html{-webkit-text-size-adjust:100%}
   body{background:var(--bg);color:var(--text);
        font-family:Inter,-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.5;
