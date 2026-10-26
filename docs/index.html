@@ -677,9 +677,18 @@ function sparkSVG(code){
 }
 
 function metaText(){
-  const suffix = state.notice ||
+  let suffix = state.notice ||
     (state.mode === "static" ? "云端采集 · 交易日盘中每 5 分钟更新（GitHub Actions）" : "每 60 秒自动刷新");
-  let txt = `数据时间：${fmtTs(state.updatedTs)} · 共 ${state.rows.length} 只 · ${suffix}`;
+  // 数据新鲜度：附带「（X 分钟前）」，每分钟随轮询刷新，直观体现页面在自动更新
+  let ageTxt = "";
+  const stale = state.updatedTs ? (Date.now()/1000 - state.updatedTs) : 0;
+  if (state.updatedTs){
+    const mins = Math.max(0, Math.floor(stale/60));
+    ageTxt = mins < 1 ? "（刚刚）" : `（${mins} 分钟前）`;
+  }
+  // 非交易时段（数据 >15 分钟未更新）提示暂停，避免误以为卡死
+  if (state.mode === "static" && !state.notice && stale > 900) suffix += " · 非交易时段暂停";
+  let txt = `数据时间：${fmtTs(state.updatedTs)}${ageTxt} · 共 ${state.rows.length} 只 · ${suffix}`;
   if (state.query) txt += ` · 搜索“${state.query}”命中 ${visibleRows().length} 只`;
   return txt;
 }
@@ -770,6 +779,9 @@ async function load(){
       // 重建既是 DOM churn 也会打断正在进行的选择/滚动；首轮 renderedTs 为 null 必渲染
       if (state.renderedTs == null || state.updatedTs !== state.renderedTs){
         renderTabs(); renderTable(); state.renderedTs = state.updatedTs;
+      } else {
+        // 数据未变也刷新顶部「数据时间（X 分钟前）」文案，让自动轮询可见
+        meta.textContent = metaText();
       }
       loadPerf();               // rows 就绪后再算持有中信号的实时浮动
       if (!state.histTs || Date.now()/1000 - state.histTs > 240){
