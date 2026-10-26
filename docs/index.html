@@ -692,6 +692,10 @@ function metaText(){
   if (state.mode === "static" && state.updatedTs && refreshTs && refreshTs !== state.updatedTs){
     txt += ` · 行情截至 ${fmtTs(state.updatedTs)}`;
   }
+  // 当前时间（每分钟随轮询刷新）：即使数据未变，也能看到页面在更新
+  const nowD = new Date();
+  const hhmm = String(nowD.getHours()).padStart(2, "0") + ":" + String(nowD.getMinutes()).padStart(2, "0");
+  txt += ` · 现在 ${hhmm}`;
   txt += ` · 共 ${state.rows.length} 只 · ${suffix}`;
   if (state.query) txt += ` · 搜索“${state.query}”命中 ${visibleRows().length} 只`;
   return txt;
@@ -1697,7 +1701,10 @@ async function loadPerf(){
 // PWA：注册 Service Worker（离线可看上次数据）
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js").then((reg) => {
+      // 每 5 分钟主动检查页面/SW 是否有新版本，有则自动刷新（不管数据是否变化）
+      setInterval(() => { reg.update().catch(() => {}); }, 5 * 60 * 1000);
+    }).catch(() => {});
   });
   // 新版本 SW 接管后自动刷新一次，保证已安装到主屏幕的用户也能拿到新版页面
   let swRefreshing = false;
