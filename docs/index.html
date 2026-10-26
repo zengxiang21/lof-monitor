@@ -393,7 +393,7 @@
       </div>
     </div>
     <div class="actions">
-      <button class="btn" id="refreshBtn">手动刷新</button>
+      <button class="btn" id="refreshBtn" title="立即重新拉取最新数据（云端每 5 分钟更新一次）">强制刷新</button>
       <button class="btn ghost" id="sharesBtn" title="从深交所/上交所刷新全市场场内份额">刷新份额</button>
       <button class="btn ghost" id="pushBtn" title="企业微信推送记录（未配置 webhook 时为记录模式）">推送记录</button>
       <a class="btn ghost" href="calibration.html" title="估算误差回测与 β 校准面板">误差回测</a>
@@ -699,6 +699,10 @@ function metaText(){
   const p2 = (n) => String(n).padStart(2, "0");
   const hhmmss = p2(nowD.getHours()) + ":" + p2(nowD.getMinutes()) + ":" + p2(nowD.getSeconds());
   txt += ` · 现在 ${hhmmss}`;
+  // 距下次数据刷新倒计时（云端每 5 分钟：:00/:05/:10…，实际可能略有延迟）
+  const nowSec2 = Math.floor(Date.now()/1000);
+  const secToNext = 300 - (nowSec2 % 300);
+  txt += ` · 距下次刷新约 ${p2(Math.floor(secToNext/60))}:${p2(secToNext%60)}`;
   txt += ` · 共 ${state.rows.length} 只 · ${suffix}`;
   if (state.query) txt += ` · 搜索“${state.query}”命中 ${visibleRows().length} 只`;
   return txt;
@@ -1363,8 +1367,20 @@ let pollTimer = null;
 async function startCollect(){
   const b = document.getElementById("refreshBtn");
   if (state.mode === "static"){
-    b.disabled = true; b.textContent = "载入中…";
-    try { await load(); } finally { b.disabled = false; b.textContent = "重新载入"; }
+    b.disabled = true; b.textContent = "刷新中…";
+    try {
+      await load();                        // 立即重拉最新 snapshot（带 ?t= 破缓存）
+      const t = new Date().toLocaleTimeString("zh-CN", {hour12:false});
+      state.notice = `已强制刷新 ${t}`;      // 明确反馈：确实重新拉过了
+      document.getElementById("meta").textContent = metaText();
+      setTimeout(() => {
+        state.notice = null;
+        const m = document.getElementById("meta");
+        if (m) m.textContent = metaText();
+      }, 4000);
+    } finally {
+      b.disabled = false; b.textContent = "强制刷新";
+    }
     return;
   }
   b.disabled = true; b.textContent = "采集中…";
