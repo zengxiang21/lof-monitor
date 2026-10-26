@@ -684,8 +684,10 @@ function metaText(){
   let ageTxt = "";
   const stale = refreshTs ? (Date.now()/1000 - refreshTs) : 0;
   if (refreshTs){
-    const mins = Math.max(0, Math.floor(stale/60));
-    ageTxt = mins < 1 ? "（刚刚）" : `（${mins} 分钟前）`;
+    // 计时器：精确到秒，每秒随 1s 定时器跳动（如「11 分 23 秒前」）
+    const secs = Math.max(0, Math.floor(stale));
+    const mm = Math.floor(secs / 60), ss = secs % 60;
+    ageTxt = secs < 5 ? "（刚刚）" : (mm > 0 ? `（${mm} 分 ${ss} 秒前）` : `（${ss} 秒前）`);
   }
   let txt = `数据时间：${fmtTs(refreshTs)}${ageTxt}`;
   // 刷新时间与行情时间不同时，标注真实「行情截至」，避免误以为价格是最新的
