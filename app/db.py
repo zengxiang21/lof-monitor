@@ -193,8 +193,23 @@ class DB:
         return range_from_points([dict(r) for r in rows], days, max_pts)
 
     def latest_ts(self) -> int:
-        row = self.conn.execute("SELECT MAX(ts) AS mx FROM quotes").fetchone()
-        return int(row["mx"]) if row and row["mx"] else 0
+        """最后任意数据更新时间：取「最近行情」与「盘后结算写入」的较大值。
+
+        盘后（无新行情）时也能反映最近一次结算（净值/状态/份额/限额/误差/β）的写入时间。
+        """
+        qts = self.conn.execute("SELECT MAX(ts) AS mx FROM quotes").fetchone()
+        qts = int(qts["mx"]) if qts and qts["mx"] else 0
+        sts = self.conn.execute(
+            "SELECT MAX(mx) AS mx FROM ("
+            "  SELECT MAX(updated_at) AS mx FROM fund_nav UNION ALL"
+            "  SELECT MAX(updated_at) FROM fund_status UNION ALL"
+            "  SELECT MAX(updated_at) FROM fund_shares UNION ALL"
+            "  SELECT MAX(updated_at) FROM fund_limits UNION ALL"
+            "  SELECT MAX(updated_at) FROM est_error UNION ALL"
+            "  SELECT MAX(updated_at) FROM beta_model)"
+        ).fetchone()
+        sts = int(sts["mx"]) if sts and sts["mx"] else 0
+        return max(qts, sts)
 
     def known_codes(self) -> list[str]:
         rows = self.conn.execute("SELECT DISTINCT code FROM quotes").fetchall()
