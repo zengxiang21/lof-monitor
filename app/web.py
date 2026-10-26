@@ -258,6 +258,24 @@ def create_app(db) -> FastAPI:
             counts[r["category"]] = counts.get(r["category"], 0) + 1
         return {"total": len(rows), "counts": counts, "updated_ts": db.latest_ts()}
 
+    @app.get("/api/holdings")
+    def api_holdings():
+        """全量持仓方向摘要（季度重仓股 → 方向标签，面板"持仓方向"列数据源）。
+        与静态模式的 data/holdings.json 结构一致（{funds: {code: {...}}}）。"""
+        from .holdings import holdings_summary
+        rows = db.latest_quotes()
+        return {"updated_ts": db.latest_ts(), "funds": holdings_summary(db, rows)}
+
+    @app.get("/api/holdings/quotes")
+    def api_holdings_quotes(secids: str = Query("", max_length=2000)):
+        """重仓股实时行情（腾讯行情，60s 内存缓存）。
+        详情面板展开时按需拉取：secids=sh600000,sz000001,..."""
+        from .holdings import fetch_stock_quotes
+        syms = [s for s in secids.split(",") if s]
+        if not syms:
+            return {"quotes": {}}
+        return {"quotes": fetch_stock_quotes(syms)}
+
     @app.get("/api/shares/changes")
     def api_share_changes(limit: int = Query(30, le=200)):
         """场内份额日变动排行（|变动%| 降序）——套利资金进出信号。"""
