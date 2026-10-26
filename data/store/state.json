@@ -401,7 +401,7 @@
    "max_amt": 2.0,
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 2.3887,
+   "est_nav_raw": 2.2683,
    "beta": 0.9897
   },
   "160421": {
@@ -949,7 +949,7 @@
    "max_amt": 5.0,
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 1.7673,
+   "est_nav_raw": 1.7891,
    "beta": 0.9897
   },
   "160722": {
@@ -979,7 +979,7 @@
    "max_amt": 5.0,
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 2.6046,
+   "est_nav_raw": 2.4734,
    "beta": 0.9897
   },
   "160726": {
@@ -1505,7 +1505,7 @@
    "max_amt": 10.0,
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 1.4666,
+   "est_nav_raw": 1.4847,
    "beta": 0.9897
   },
   "161117": {
@@ -1677,7 +1677,7 @@
    "max_amt": 10.0,
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 2.1814,
+   "est_nav_raw": 2.0716,
    "beta": 0.9897
   },
   "161130": {
@@ -1821,7 +1821,7 @@
    "max_amt": 100.0,
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 1.4997,
+   "est_nav_raw": 1.468,
    "beta": 0.9897
   },
   "161227": {
@@ -2175,7 +2175,7 @@
    "shares_date": "2026-10-24",
    "share_chg_pct": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 1.1619,
+   "est_nav_raw": 1.139,
    "beta": 0.9897
   },
   "161816": {
@@ -2411,7 +2411,7 @@
    "max_amt": 10.0,
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 1.0563,
+   "est_nav_raw": 1.0031,
    "beta": 0.9897
   },
   "162412": {
@@ -2563,7 +2563,7 @@
    "max_amt": 10.0,
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 3.4138,
+   "est_nav_raw": 3.2419,
    "beta": 0.9897
   },
   "162720": {
@@ -2743,7 +2743,7 @@
    "max_amt": 500.0,
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 1.552,
+   "est_nav_raw": 1.4739,
    "beta": 0.9897
   },
   "163302": {
@@ -3057,7 +3057,7 @@
    "max_amt": 100.0,
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 1.5358,
+   "est_nav_raw": 1.5548,
    "beta": 0.9897
   },
   "164703": {
@@ -4058,7 +4058,7 @@
    "share_chg_pct": 0.0,
    "max_amt": 0.0,
    "est_source": "anchor",
-   "est_nav_raw": 2.2976,
+   "est_nav_raw": 2.1819,
    "beta": 0.9897
   },
   "501019": {
@@ -5552,7 +5552,7 @@
    "category": "A股"
   }
  },
- "updated_ts": 1792994807,
+ "updated_ts": 1793018865,
  "updated": "2026-10-26",
  "group_betas": {
   "holdings": 0.9999,
