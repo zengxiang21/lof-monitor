@@ -187,6 +187,25 @@ class Store:
         tick_ts = int(t.get("ts") or 0) if t else 0
         return max(tick_ts, int(self._settlement_mtime()))
 
+    def quote_ts(self) -> int:
+        """最后一条行情 tick 的内容时间戳（「行情截至」的真实报价时间）。"""
+        t = self.latest_tick()
+        return int(t.get("ts") or 0) if t else 0
+
+    def heartbeat_ts(self) -> int:
+        """心跳时间戳（非交易时段由 CI 定时写入，驱动「数据时间」持续推进）。"""
+        try:
+            p = self.root / "heartbeat.json"
+            if p.exists():
+                return int(json.loads(p.read_text(encoding="utf-8")).get("ts") or 0)
+        except Exception:  # noqa: BLE001
+            pass
+        return 0
+
+    def refreshed_ts(self) -> int:
+        """最后刷新时间：行情/结算时间与心跳时间取大（非交易时段也能推进）。"""
+        return max(self.latest_ts(), self.heartbeat_ts())
+
     def latest_rows(self) -> list[dict]:
         """最近 tick + state 合并 → 与 db.latest_quotes() 同行形状。"""
         tick = self.latest_tick()
