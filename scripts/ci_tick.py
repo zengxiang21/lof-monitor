@@ -58,6 +58,7 @@ CRON_TASK = {
     "55 6 * * 1-5": "push",          # 14:55 执行确认（仅变更才推）
     "10 8 * * 1-5": "perf,push",     # 16:10 信号 T+2 回填写入
     "40 7 * * 5": "push",            # 周五 15:40 套利信号周报
+    "*/30 0,8-23 * * *": "heartbeat",  # 非交易时段每 30 分钟心跳（数据时间持续推进）
 }
 
 STORE_DIR = ROOT / "data" / "store"
@@ -390,6 +391,19 @@ def task_push(store: Store, force: bool = False) -> bool:
     return True
 
 
+def task_heartbeat(store: Store) -> bool:
+    """心跳：非交易时段也写一次刷新时间戳，使页面「数据时间」持续推进。
+
+    只更新 heartbeat.json（不抓行情、不写 tick），避免盘后/夜间重复请求数据源；
+    配合 export_static 的 refreshed_ts 让「数据时间」前进，而「行情截至」保持真实报价时间。
+    """
+    ts = int(time.time())
+    (store.root / "heartbeat.json").write_text(
+        json.dumps({"ts": ts}), encoding="utf-8")
+    _log(f"heartbeat: refreshed ts={ts}")
+    return True
+
+
 TASKS = {
     "collect": task_collect,
     "nav": task_nav,
@@ -399,6 +413,7 @@ TASKS = {
     "status": task_nav,   # 申购状态随净值任务一并刷新
     "push": task_push,    # 企业微信推送评估（webhook 经 LOF_WECOM_WEBHOOK 注入）
     "perf": task_perf,    # 信号 T+2 回填（performance.json）
+    "heartbeat": task_heartbeat,  # 非交易时段刷新时间戳（数据时间持续推进）
 }
 
 
