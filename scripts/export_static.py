@@ -52,7 +52,8 @@ def _read_jsonl(path: Path, limit: int = 100) -> list[dict]:
 def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
                    series: dict, ranges: dict, calibration: dict,
                    push_items: list[dict] | None = None,
-                   perf: dict | None = None) -> dict:
+                   perf: dict | None = None,
+                   holdings: dict | None = None) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     generated_at = datetime.now(timezone(timedelta(hours=8))).isoformat(timespec="seconds")
     counts: dict[str, int] = {}
@@ -112,6 +113,15 @@ def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
                    {"generated_at": generated_at, "principal": None,
                     "signals": [], "stats": None},
                    ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    # holdings.json：持仓方向摘要（季度重仓股归类，与行情解耦的季度级数据）。
+    # 云端 store 模式无持仓表（LOF_NO_AKSHARE=1），不传该参数即不写文件——
+    # 避免覆盖本机推送的线上版本（数据文件治理：本机是持仓数据的唯一来源）。
+    if holdings is not None:
+        (out_dir / "holdings.json").write_text(
+            json.dumps({"generated_at": generated_at,
+                        "updated_ts": updated_ts,
+                        "funds": holdings},
+                       ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     size = sum(p.stat().st_size for p in out_dir.glob("*.json"))
     return {"ok": True, "total": len(rows), "series": len(series), "bytes": size}
 
@@ -150,9 +160,11 @@ def _export_db(out_dir: Path) -> dict:
                 }
     calibration = _calibration_from_db(db, rows)
     push_items = _read_jsonl(DATA_DIR / "push_records.jsonl")
+    from app.holdings import holdings_summary
+    holdings = holdings_summary(db, rows)
     return _write_outputs(out_dir, rows, db.latest_ts(), series, ranges,
                           calibration, push_items,
-                          _perf_payload(DATA_DIR))
+                          _perf_payload(DATA_DIR), holdings)
 
 
 def _calibration_from_db(db, rows: list[dict]) -> dict:
