@@ -1795,10 +1795,10 @@ async function loadPerf(){
 }
 
 (async()=>{
+  bindPickHist();          // 先绑定：不依赖模式探测，避免慢网络下按钮短时间无响应
   await detectMode();
   bindSortHeads();
   bindSearch();
-  bindPickHist();
   bindViewSwitch();
   load();
   setInterval(load, 60000);
