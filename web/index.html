@@ -679,16 +679,20 @@ function sparkSVG(code){
 function metaText(){
   let suffix = state.notice ||
     (state.mode === "static" ? "云端采集 · 交易日盘中每 5 分钟更新（GitHub Actions）" : "每 60 秒自动刷新");
-  // 数据新鲜度：附带「（X 分钟前）」，每分钟随轮询刷新，直观体现页面在自动更新
+  // 刷新时间（含非交易时段心跳）用于「数据时间」，可持续推进；updatedTs 为真实行情时间
+  const refreshTs = state.refreshedTs || state.updatedTs;
   let ageTxt = "";
-  const stale = state.updatedTs ? (Date.now()/1000 - state.updatedTs) : 0;
-  if (state.updatedTs){
+  const stale = refreshTs ? (Date.now()/1000 - refreshTs) : 0;
+  if (refreshTs){
     const mins = Math.max(0, Math.floor(stale/60));
     ageTxt = mins < 1 ? "（刚刚）" : `（${mins} 分钟前）`;
   }
-  // 非交易时段（数据 >15 分钟未更新）提示暂停，避免误以为卡死
-  if (state.mode === "static" && !state.notice && stale > 900) suffix += " · 非交易时段暂停";
-  let txt = `数据时间：${fmtTs(state.updatedTs)}${ageTxt} · 共 ${state.rows.length} 只 · ${suffix}`;
+  let txt = `数据时间：${fmtTs(refreshTs)}${ageTxt}`;
+  // 刷新时间与行情时间不同时，标注真实「行情截至」，避免误以为价格是最新的
+  if (state.mode === "static" && state.updatedTs && refreshTs && refreshTs !== state.updatedTs){
+    txt += ` · 行情截至 ${fmtTs(state.updatedTs)}`;
+  }
+  txt += ` · 共 ${state.rows.length} 只 · ${suffix}`;
   if (state.query) txt += ` · 搜索“${state.query}”命中 ${visibleRows().length} 只`;
   return txt;
 }
@@ -774,7 +778,7 @@ async function load(){
   try{
     if (state.mode === "static"){
       const s = await getJSON(`data/snapshot.json?t=${Date.now()}`, {}, 15000);
-      state.rows = s.items || []; state.counts = s.counts || {}; state.updatedTs = s.updated_ts || 0;
+      state.rows = s.items || []; state.counts = s.counts || {}; state.updatedTs = s.updated_ts || 0; state.refreshedTs = s.refreshed_ts || s.updated_ts || 0;
       // 数据未变（updatedTs 与已渲染的一致）则跳过全量重建：404 行 innerHTML
       // 重建既是 DOM churn 也会打断正在进行的选择/滚动；首轮 renderedTs 为 null 必渲染
       if (state.renderedTs == null || state.updatedTs !== state.renderedTs){
@@ -796,7 +800,7 @@ async function load(){
       getJSON("api/lof/list?sort=" + state.sort),
       getJSON("api/summary")
     ]);
-    state.rows = list.items; state.counts = sum.counts; state.updatedTs = sum.updated_ts;
+    state.rows = list.items; state.counts = sum.counts; state.updatedTs = sum.updated_ts; state.refreshedTs = sum.refreshed_ts || sum.updated_ts;
     if (state.renderedTs == null || state.updatedTs !== state.renderedTs){
       renderTabs(); renderTable(); state.renderedTs = state.updatedTs;
     }
