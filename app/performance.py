@@ -76,6 +76,8 @@ def record_signal(root: str | Path, pick: dict) -> dict | None:
         "net_premium": pick.get("net_premium"),
         "amount": pick.get("amount"), "max_amt": pick.get("max_amt"),
         "sgzt": pick.get("sgzt"),
+        # 留档来源：live=推送/导出实时记录，archive=历史回填（面板可标注）
+        "source": pick.get("source") or "live",
     }
     p = root / SIGNALS_FILE
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -87,10 +89,13 @@ def record_signal(root: str | Path, pick: dict) -> dict | None:
 # ---------- 2. T+2 回填 ----------
 
 def _trade_days(store) -> list[str]:
-    """有 tick 的日期 = 已开盘交易日（升序）。
+    """有 tick 的日期 = 已开盘交易日（升序，仅周一至周五）。
 
     StoreDB 适配器与裸 Store 都能用：优先 trade_day_set()，
     没有则直接 glob 数据目录下的 20*.jsonl（同口径）。
+
+    为什么要过滤周末：周末手动/补跑采集也会写 tick 文件，但它不是交易日，
+    留着会让 T+2 的"第 2 个交易日"错位（周六被当成交易日，卖出价取错）。
     """
     days: set[str] = set()
     fn = getattr(store, "trade_day_set", None)
@@ -103,7 +108,17 @@ def _trade_days(store) -> list[str]:
         root = getattr(store, "root", None)
         if root:
             days = {p.stem for p in Path(root).glob("20*.jsonl")}
-    return sorted(d for d in days if len(d) == 10 and d.startswith("20"))
+    out = []
+    for d in days:
+        if len(d) != 10 or not d.startswith("20"):
+            continue
+        try:
+            if datetime.strptime(d, "%Y-%m-%d").weekday() >= 5:
+                continue                       # 周六/周日不是交易日
+        except ValueError:
+            continue
+        out.append(d)
+    return sorted(out)
 
 
 def _settle(store, sig: dict) -> dict | None:
