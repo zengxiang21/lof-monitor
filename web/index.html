@@ -692,10 +692,11 @@ function metaText(){
   if (state.mode === "static" && state.updatedTs && refreshTs && refreshTs !== state.updatedTs){
     txt += ` · 行情截至 ${fmtTs(state.updatedTs)}`;
   }
-  // 当前时间（每分钟随轮询刷新）：即使数据未变，也能看到页面在更新
+  // 当前时间（每秒刷新）：即使数据未变，也能看到页面在走
   const nowD = new Date();
-  const hhmm = String(nowD.getHours()).padStart(2, "0") + ":" + String(nowD.getMinutes()).padStart(2, "0");
-  txt += ` · 现在 ${hhmm}`;
+  const p2 = (n) => String(n).padStart(2, "0");
+  const hhmmss = p2(nowD.getHours()) + ":" + p2(nowD.getMinutes()) + ":" + p2(nowD.getSeconds());
+  txt += ` · 现在 ${hhmmss}`;
   txt += ` · 共 ${state.rows.length} 只 · ${suffix}`;
   if (state.query) txt += ` · 搜索“${state.query}”命中 ${visibleRows().length} 只`;
   return txt;
@@ -1696,6 +1697,12 @@ async function loadPerf(){
   bindViewSwitch();
   load();
   setInterval(load, 60000);
+  // 每秒刷新顶部「现在」时钟（静态模式），让页面始终可见在走
+  setInterval(() => {
+    if (state.mode !== "static") return;
+    const m = document.getElementById("meta");
+    if (m) m.textContent = metaText();
+  }, 1000);
 })();
 
 // PWA：注册 Service Worker（离线可看上次数据）
