@@ -161,9 +161,31 @@ class Store:
                     return {"price": it[F_PRICE], "ts": line.get("ts")}
         return None
 
+    def _settlement_mtime(self) -> float:
+        """最近一次盘后结算写入时间（state/shares/nav/limits/errors/signals/performance）。
+
+        这些文件不含内容级时间戳，用文件修改时间近似「最后写入时刻」——
+        盘中无新行情时，仍能反映最近一次结算（净值/份额/β 等）的发生时间。
+        """
+        candidates = [
+            "state.json", "shares.jsonl", "limits.jsonl", "errors.jsonl",
+            "nav.jsonl", "signals.jsonl", "performance.json",
+        ]
+        mx = 0.0
+        for name in candidates:
+            p = self.root / name
+            if p.exists():
+                mx = max(mx, p.stat().st_mtime)
+        return mx
+
     def latest_ts(self) -> int:
+        """最后任意数据更新时间：取「最近行情 tick」与「盘后结算文件写入时间」的较大值。
+
+        盘中 = 最近一条行情时间；盘后（无新行情）= 最近一次结算（净值/份额/β 等）的写入时间。
+        """
         t = self.latest_tick()
-        return int(t.get("ts") or 0) if t else 0
+        tick_ts = int(t.get("ts") or 0) if t else 0
+        return max(tick_ts, int(self._settlement_mtime()))
 
     def latest_rows(self) -> list[dict]:
         """最近 tick + state 合并 → 与 db.latest_quotes() 同行形状。"""
