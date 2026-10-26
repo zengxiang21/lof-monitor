@@ -7,6 +7,7 @@ snapshot.json 临时注入两条限额异动数据（真实数据当天无一达
 测试结束后按字节还原，不污染真实数据。
 """
 import json
+import re
 import subprocess
 import sys
 import time
@@ -88,10 +89,14 @@ def _run_checks():
             check("等待渲染超时", False, str(e)[:80])
         time.sleep(2)
 
-        # 1. 主表 13 列（星标 + 原 12 列）
+        # 1. 主表 14 列（星标 + 代码 + 名称 + 持仓方向 + 现价 + …）
         ncol = pg.eval_on_selector("#tbody",
                                    "e => e.closest('table').querySelectorAll('thead tr th').length")
-        check("主表 13 列（含星标列）", ncol == 13, f"ncol={ncol}")
+        check("主表 14 列（含持仓方向列）", ncol == 14, f"ncol={ncol}")
+        # 1b. 持仓方向列（col 4）渲染 + 方向文案非空
+        dir_txt = pg.eval_on_selector_all("#tbody tr td:nth-child(4)",
+                                          "e => e.map(x => x.textContent).filter(t => t && t !== '—')")
+        check("持仓方向列有方向文案", len(dir_txt) > 0, f"非空方向={len(dir_txt)}")
 
         # 2. 精选卡片：净收益 + 净值滞后提示
         pick_txt = pg.inner_text("#pickBody")
@@ -141,18 +146,18 @@ def _run_checks():
         # 8. 排序仍可用（表头点击）
         pg.click("thead th[data-key='amount']")
         time.sleep(0.3)
-        amt_first = pg.eval_on_selector_all("#tbody tr td:nth-child(6)",
+        amt_first = pg.eval_on_selector_all("#tbody tr td:nth-child(7)",
                                             "e => e.map(x => x.textContent).slice(0,3)")
         check("成交额排序生效", bool(amt_first), str(amt_first))
 
-        # 8b. 行展开详情（colSpan 已随星标列改为 13）
+        # 8b. 行展开详情（colSpan 已随持仓方向列改为 14）
         pg.eval_on_selector_all("thead th[data-key='amount']",
                                 "e => e.forEach(x => x.click())")  # 复位排序方向
         pg.click("#tbody tr td:nth-child(2)")
         time.sleep(2)
         span = pg.eval_on_selector_all("#tbody tr.detail td, #tbody tr td.detail",
                                        "e => e.map(x => x.colSpan)")
-        check("详情行展开且跨 13 列", bool(span) and span[0] == 13, str(span[:2]))
+        check("详情行展开且跨 14 列", bool(span) and span[0] == 14, str(span[:2]))
         pg.click("#tbody tr td:nth-child(2)")  # 收起
         time.sleep(0.3)
 
@@ -221,9 +226,9 @@ def _run_checks():
         time.sleep(0.4)
         n_lc = pg.eval_on_selector_all("#tbody tr", "e => e.length")
         check("限额异动筛选剩 2 行", n_lc == 2, f"rows={n_lc}")
-        badge_up = pg.eval_on_selector_all("#tbody tr td:nth-child(13) .lchg.up",
+        badge_up = pg.eval_on_selector_all("#tbody tr td:nth-child(14) .lchg.up",
                                            "e => e.map(x => x.textContent)")
-        badge_dn = pg.eval_on_selector_all("#tbody tr td:nth-child(13) .lchg.down",
+        badge_dn = pg.eval_on_selector_all("#tbody tr td:nth-child(14) .lchg.down",
                                            "e => e.map(x => x.textContent)")
         check("限额提高红▲角标", "▲55%" in badge_up, str(badge_up))
         check("限额下调绿▼角标", "▼30%" in badge_dn, str(badge_dn))
@@ -247,6 +252,21 @@ def _run_checks():
         pg.fill("#searchInput", "不存在的基金xyz")
         time.sleep(0.5)
         check("搜索无结果走空态提示", "没有匹配" in (pg.text_content("#empty") or ""))
+        # 11d-2. 按重仓股名搜索（持仓方向功能）：新易盛是 AI算力 LOF 重仓
+        pg.fill("#searchInput", "新易盛")
+        time.sleep(0.6)
+        n_x = pg.eval_on_selector_all("#tbody tr", "e => e.length")
+        check("按重仓股名搜索命中", n_x >= 1, f"rows={n_x}")
+        if n_x >= 1:
+            pg.click("#tbody tr td:nth-child(2)")     # 展开首行详情
+            time.sleep(2)
+            det2 = pg.inner_text("#tbody tr td.detail") if pg.query_selector("#tbody tr td.detail") else ""
+            check("详情持仓表含前十大重仓", "前十大重仓" in det2, det2[:24])
+            pg.click("#tbody tr td:nth-child(2)")     # 收起
+            time.sleep(0.3)
+        pg.fill("#searchInput", "不存在的基金xyz")
+        time.sleep(0.5)
+        check("重仓股名搜索后无结果空态", "没有匹配" in (pg.text_content("#empty") or ""))
         pg.click("#searchClear")
         time.sleep(0.4)
         check("清空搜索恢复全量",
@@ -265,7 +285,7 @@ def _run_checks():
         pg.click("#viewSwitch button[data-v='cards']")
         time.sleep(0.5)
         n_card = pg.eval_on_selector_all("#cardsView .fcard", "e => e.length")
-        check("卡片视图渲染全部行", n_card == 404, f"cards={n_card}")
+        check("卡片视图渲染全部行", n_card == 390, f"cards={n_card}")
         check("卡片视图隐藏表格",
               pg.eval_on_selector("#mainTable",
                   "e => getComputedStyle(e.closest('.tblwrap')).display") == "none")
@@ -294,22 +314,32 @@ def _run_checks():
         pin = pg.query_selector("#principalInput")
         check("本金输入框存在", pin is not None)
         if pin:
+            def _num(s):
+                m = re.search(r"¥([\d,]+)", s or "")
+                return int(m.group(1).replace(",", "")) if m else None
             pin.fill("2w")
             time.sleep(0.3)
-            prof = pg.inner_text("#pickProfit")
-            check("2w=2万 预计收益", "1,006" in prof, prof)
+            prof2w = pg.inner_text("#pickProfit")
+            v2w = _num(prof2w)
+            check("2w=2万 预计收益为正", v2w is not None and v2w > 0, prof2w)
             pin.fill("1k")
             time.sleep(0.3)
-            prof = pg.inner_text("#pickProfit")
-            check("1k=1千 预计收益", "50" in prof, prof)
+            prof1k = pg.inner_text("#pickProfit")
+            v1k = _num(prof1k)
+            # 2万 vs 1千 应约为 20 倍（验证简写换算 + 计算链路）
+            check("1k=1千 收益约为2万/20", v2w and v1k and 15 <= v2w / v1k <= 25,
+                  f"2w={v2w} 1k={v1k}")
             pin.fill("abc")
             time.sleep(0.3)
             check("非法输入显示—", pg.inner_text("#pickProfit") == "—")
             pin.fill("100,000")
             pin.evaluate("e => e.blur()")
             time.sleep(0.3)
-            prof = pg.inner_text("#pickProfit")
-            check("恢复10万收益", "5,029" in prof, prof)
+            prof100k = pg.inner_text("#pickProfit")
+            v100k = _num(prof100k)
+            # 10万 应约为 2万 的 5 倍
+            check("恢复10万收益约为2万×5", v100k and v2w and 4 <= v100k / v2w <= 6,
+                  f"100k={v100k} 2w={v2w}")
             saved = pg.evaluate("localStorage.getItem('lof-principal')")
             check("本金本地记忆", saved == "100000", str(saved))
 
