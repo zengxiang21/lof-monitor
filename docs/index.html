@@ -113,6 +113,14 @@
   .card-hd h3{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;min-width:0}
   .card-hd h3 .bar{width:3px;height:14px;border-radius:2px;background:var(--accent);flex:0 0 auto}
   .card-hd .right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  /* 精选历史面板：点「历史」展开，与今日卡片同宽同风格 */
+  #pickHist{border-top:1px solid var(--line);margin:2px 0 0;padding:2px 0 4px;
+            animation:cardIn .25s cubic-bezier(.2,.7,.4,1) both}
+  .histhd{padding:8px 16px 4px;font-size:12px;color:var(--sub);display:flex;
+          align-items:center;gap:6px;flex-wrap:wrap}
+  .histhd b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+  .histhd b.up{color:var(--up)}
+  .histhd b.down{color:var(--down)}
   .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
   table{width:100%;border-collapse:collapse;min-width:520px}
   th{font-size:11px;color:var(--sub);font-weight:500;padding:9px 10px;text-align:right;
@@ -444,9 +452,13 @@
   <div class="card" id="pickCard">
     <div class="card-hd">
       <h3><span class="bar"></span>今日套利精选 <span class="meta" id="pickDate"></span></h3>
-      <span class="meta" id="pickMeta"></span>
+      <div class="right">
+        <span class="meta" id="pickMeta"></span>
+        <button class="btn ghost sm" id="pickHistBtn" title="查看往期精选与后续 T+2 真实盈亏">历史 ▾</button>
+      </div>
     </div>
     <div id="pickBody"><div class="meta">筛选中…</div></div>
+    <div id="pickHist" hidden></div>
   </div>
 
   <div class="card" id="perfCard">
@@ -1543,6 +1555,9 @@ function bindPrincipal(p){
 
 // ---------- 今日精选卡片 ----------
 async function loadPick(){
+  // 历史面板展开时跟着刷新（新的一天会多一条留档）
+  const histBox = document.getElementById("pickHist");
+  if (histBox && !histBox.hidden) loadPickHist(true);
   try{
     const d = await getJSON(`data/daily_pick.json?t=${Date.now()}`, {}, 15000);
     const body = document.getElementById("pickBody");
@@ -1630,6 +1645,100 @@ async function loadPick(){
   }
 }
 
+// ---------- 精选历史（往期精选 + T+2 真实盈亏回填） ----------
+// 数据源：data/performance.json（signals 每交易日一条，由导出/推送任务留档）
+let pickHistLoaded = false;
+
+// 单条信号的展示单元格（精选历史与战绩卡共用，口径完全一致）
+function perfCells(s, feePct, principal){
+  const settled = s.status === "settled";
+  const row = (state.rows || []).find(r => r.code === s.code);
+  let navTxt, sellTxt, netTxt, netCls, profTxt, profCls, resTxt;
+  if (settled){
+    navTxt = s.sub_nav != null ? s.sub_nav : "—";
+    sellTxt = `${s.sell_price} <span class="sgzt">${(s.sell_date || "").slice(5)} 开盘</span>`;
+    netCls = s.net_pct > 0 ? "up" : "down";
+    netTxt = (s.net_pct > 0 ? "+" : "") + s.net_pct.toFixed(2) + "%";
+    profCls = (s.net_profit || 0) >= 0 ? "up" : "down";
+    profTxt = (s.net_profit >= 0 ? "+" : "-") + "¥" + Math.abs(s.net_profit || 0).toLocaleString();
+    resTxt = s.win ? '<span class="up">胜</span>' : '<span class="down">负</span>';
+  } else {
+    // 持有中：现价 vs 信号时记录的净值（估值，实际以申购日官方净值为准）
+    navTxt = s.nav != null ? `${s.nav}<span class="sgzt">估</span>` : "—";
+    const px = row ? row.price : null;
+    const flt = (px != null && s.nav) ? ((px / s.nav - 1) * 100 - feePct) : null;
+    sellTxt = px != null ? `${px} <span class="sgzt">现价</span>` : "—";
+    netCls = flt == null ? "flat" : (flt > 0 ? "up" : "down");
+    netTxt = flt == null ? "—" : (flt > 0 ? "+" : "") + flt.toFixed(2) + "%";
+    profTxt = flt == null ? "—" : (flt >= 0 ? "+" : "-") + "¥" +
+      Math.abs(Math.round((principal || 100000) * flt / 100)).toLocaleString();
+    profCls = netCls;
+    resTxt = '<span class="flat">持有中</span>';
+  }
+  return {navTxt, sellTxt, netTxt, netCls, profTxt, profCls, resTxt};
+}
+
+async function loadPickHist(force){
+  const box = document.getElementById("pickHist");
+  if (!box) return;
+  if (pickHistLoaded && !force) return;
+  box.innerHTML = '<div class="meta" style="padding:12px 16px">加载历史…</div>';
+  try{
+    const d = await getJSON(`data/performance.json?t=${Date.now()}`, {}, 15000);
+    const sigs = d.signals || [];
+    const feePct = (d.fee_pct != null ? d.fee_pct : 0.18);
+    const principal = d.principal || 100000;
+    pickHistLoaded = true;
+    if (!sigs.length){
+      box.innerHTML = '<div class="meta" style="padding:12px 16px">暂无历史精选——每个交易日 14:45 自动留档一条，' +
+        'T+2 收盘后回填真实盈亏（申购净值 × 卖出价，已扣费）。</div>';
+      return;
+    }
+    const st = d.stats;
+    const settledN = sigs.filter(s => s.status === "settled").length;
+    let html = `<div class="histhd">往期精选 <b>${sigs.length}</b> 期` +
+      (settledN
+        ? ` · 已回填 <b>${settledN}</b> 期 · 胜率 <b class="${(st && st.win_rate >= 50) ? "up" : "down"}">${st ? st.win_rate : 0}%</b>` +
+          (st ? ` · 平均净收益 <b class="${st.avg_net_pct > 0 ? "up" : "down"}">${st.avg_net_pct > 0 ? "+" : ""}${st.avg_net_pct.toFixed(2)}%</b>` : "")
+        : ` · 全部待 T+2 回填`) +
+      `</div>`;
+    html += `<div class="tblwrap"><table><thead><tr>
+      <th>精选日期</th><th style="text-align:left">代码/名称</th><th>精选溢价</th><th>申购净值</th>
+      <th>卖出 / 现价</th><th>净收益</th><th>10万盈亏</th><th>结果</th>
+    </tr></thead><tbody>`;
+    for (const s of sigs){
+      const c = perfCells(s, feePct, principal);
+      html += `<tr>
+        <td>${s.date || ""}</td>
+        <td style="text-align:left">${s.code} ${s.name || ""}</td>
+        <td class="up" style="font-weight:600">+${(s.premium ?? 0).toFixed(2)}%</td>
+        <td>${c.navTxt}</td><td>${c.sellTxt}</td>
+        <td class="${c.netCls}">${c.netTxt}</td>
+        <td class="${c.profCls}">${c.profTxt}</td>
+        <td>${c.resTxt}</td>
+      </tr>`;
+    }
+    html += `</tbody></table></div>`;
+    html += `<div class="meta" style="padding:8px 16px 4px">净收益已扣全链条费用约 ${feePct}% · ` +
+      `卖出价取 T+2 交易日开盘（节假日顺延）· 持有中行为实时浮动估算，随页面每 60 秒刷新</div>`;
+    box.innerHTML = html;
+  }catch(e){
+    pickHistLoaded = false;
+    box.innerHTML = '<div class="meta" style="padding:12px 16px">历史加载失败，点「历史」重试</div>';
+  }
+}
+
+function bindPickHist(){
+  const btn = document.getElementById("pickHistBtn");
+  const box = document.getElementById("pickHist");
+  if (!btn || !box) return;
+  btn.onclick = () => {
+    box.hidden = !box.hidden;
+    btn.textContent = box.hidden ? "历史 ▾" : "历史 ▴";
+    if (!box.hidden) loadPickHist();
+  };
+}
+
 // ---------- 信号战绩卡片（T+2 回填的净收益/胜率） ----------
 async function loadPerf(){
   const body = document.getElementById("perfBody");
@@ -1657,42 +1766,19 @@ async function loadPerf(){
     }
     // 持有中信号的实时浮动盈亏：现价（snapshot）vs 申购净值估值，扣全链条费用
     const feePct = (d.fee_pct != null ? d.fee_pct : 0.18);
-    const priceOf = code => (state.rows || []).find(r => r.code === code);
     html += `<div class="tblwrap"><table><thead><tr>
       <th>信号日期</th><th>代码/名称</th><th>信号溢价</th><th>申购净值</th><th>卖出 / 现价</th>
       <th>净收益</th><th>10万盈亏</th><th>结果</th>
     </tr></thead><tbody>`;
     for (const s of sigs.slice(0, 20)){
-      const settled = s.status === "settled";
-      const row = priceOf(s.code);
-      let navTxt, sellTxt, netTxt, netCls, profTxt, profCls, resTxt;
-      if (settled){
-        navTxt = s.sub_nav != null ? s.sub_nav : "—";
-        sellTxt = `${s.sell_price} <span class="sgzt">${(s.sell_date || "").slice(5)} 开盘</span>`;
-        netCls = s.net_pct > 0 ? "up" : "down";
-        netTxt = (s.net_pct > 0 ? "+" : "") + s.net_pct.toFixed(2) + "%";
-        profCls = (s.net_profit || 0) >= 0 ? "up" : "down";
-        profTxt = (s.net_profit >= 0 ? "+" : "-") + "¥" + Math.abs(s.net_profit || 0).toLocaleString();
-        resTxt = s.win ? '<span class="up">胜</span>' : '<span class="down">负</span>';
-      } else {
-        // 持有中：现价 vs 信号时记录的净值（估值，实际以申购日官方净值为准）
-        navTxt = s.nav != null ? `${s.nav}<span class="sgzt">估</span>` : "—";
-        const px = row ? row.price : null;
-        const flt = (px != null && s.nav) ? ((px / s.nav - 1) * 100 - feePct) : null;
-        sellTxt = px != null ? `${px} <span class="sgzt">现价</span>` : "—";
-        netCls = flt == null ? "flat" : (flt > 0 ? "up" : "down");
-        netTxt = flt == null ? "—" : (flt > 0 ? "+" : "") + flt.toFixed(2) + "%";
-        profTxt = flt == null ? "—" : (flt >= 0 ? "+" : "-") + "¥" + Math.abs(Math.round(100000 * flt / 100)).toLocaleString();
-        profCls = netCls;
-        resTxt = '<span class="flat">持有中</span>';
-      }
+      const c = perfCells(s, feePct, d.principal || 100000);
       html += `<tr>
         <td>${s.date || ""}</td><td>${s.code} ${s.name || ""}</td>
         <td class="up">+${(s.premium ?? 0).toFixed(2)}%</td>
-        <td>${navTxt}</td><td>${sellTxt}</td>
-        <td class="${netCls}">${netTxt}</td>
-        <td class="${profCls}">${profTxt}</td>
-        <td>${resTxt}</td>
+        <td>${c.navTxt}</td><td>${c.sellTxt}</td>
+        <td class="${c.netCls}">${c.netTxt}</td>
+        <td class="${c.profCls}">${c.profTxt}</td>
+        <td>${c.resTxt}</td>
       </tr>`;
     }
     html += "</tbody></table></div>";
@@ -1712,6 +1798,7 @@ async function loadPerf(){
   await detectMode();
   bindSortHeads();
   bindSearch();
+  bindPickHist();
   bindViewSwitch();
   load();
   setInterval(load, 60000);
