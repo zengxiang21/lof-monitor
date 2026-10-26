@@ -4,7 +4,7 @@
  *  - /api 读接口 + /data 静态 JSON：network-first，失败时回退缓存（弱网/离线也能看到上次数据）
  *  - POST /api/collect：强制走网络，不缓存
  */
-const VERSION = "v23";
+const VERSION = "v24";
 // 全部用相对路径（相对 sw.js 自身位置解析），同时兼容根路径部署
 // （沙箱 xxx.agentos-app.run/）与子路径部署（GitHub Pages /<repo>/）
 const SHELL = [
