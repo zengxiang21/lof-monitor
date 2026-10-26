@@ -54,7 +54,8 @@ def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
                    push_items: list[dict] | None = None,
                    perf: dict | None = None,
                    holdings: dict | None = None,
-                   refreshed_ts: int | None = None) -> dict:
+                   refreshed_ts: int | None = None,
+                   store=None) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     generated_at = datetime.now(timezone(timedelta(hours=8))).isoformat(timespec="seconds")
     counts: dict[str, int] = {}
@@ -106,6 +107,10 @@ def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
         pick = pick_evaluate(rows)
     except Exception as e:  # noqa: BLE001
         print(f"daily_pick evaluate failed: {e}")
+    # 精选历史留档：新记录出现时用最新战绩覆盖传入的 payload，
+    # 面板「历史」立刻能看到今天这一条，不必等 16:10 的 perf 任务
+    if store is not None and _record_pick(store, pick):
+        perf = _perf_payload(store.root) or perf
     (out_dir / "daily_pick.json").write_text(
         json.dumps({"generated_at": generated_at, "pick": pick},
                    ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
@@ -127,6 +132,29 @@ def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
                        ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     size = sum(p.stat().st_size for p in out_dir.glob("*.json"))
     return {"ok": True, "total": len(rows), "series": len(series), "bytes": size}
+
+
+def _record_pick(store, pick: dict | None) -> bool:
+    """把当日精选留档到 signals.jsonl（按日期去重），并立即回填 T+2 战绩。
+
+    为什么在这里记：精选历史原先只由推送任务（app/push.py，14:40–15:30
+    窗口）负责，Actions 定时延迟或任务失败就永久缺失——「今日套利精选」
+    的历史页因此一直是空的。导出任务每 5 分钟必跑，作为第二道保险。
+    只在「当天有行情 tick」的交易日留档，避免周末重复记录同一份旧行情。
+    """
+    if not pick or not pick.get("date") or not pick.get("code"):
+        return False
+    try:
+        from app.performance import _trade_days, backfill, record_signal
+        if str(pick["date"]) not in _trade_days(store):
+            return False
+        if not record_signal(store.root, pick):
+            return False
+        backfill(store, store.root)
+        return True
+    except Exception as e:  # noqa: BLE001 留档失败不能影响页面导出
+        print(f"record_signal failed: {e}")
+        return False
 
 
 def _perf_payload(store_root: Path) -> dict | None:
@@ -249,7 +277,8 @@ def _export_store(out_dir: Path) -> dict:
     return _write_outputs(out_dir, rows, store.quote_ts(), series, ranges,
                           calibration, push_items,
                           _perf_payload(store.root),
-                          refreshed_ts=store.refreshed_ts())
+                          refreshed_ts=store.refreshed_ts(),
+                          store=store)
 
 
 def _calibration_from_store(store, rows: list[dict]) -> dict:
