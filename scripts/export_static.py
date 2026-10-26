@@ -53,7 +53,8 @@ def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
                    series: dict, ranges: dict, calibration: dict,
                    push_items: list[dict] | None = None,
                    perf: dict | None = None,
-                   holdings: dict | None = None) -> dict:
+                   holdings: dict | None = None,
+                   refreshed_ts: int | None = None) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     generated_at = datetime.now(timezone(timedelta(hours=8))).isoformat(timespec="seconds")
     counts: dict[str, int] = {}
@@ -61,6 +62,8 @@ def _write_outputs(out_dir: Path, rows: list[dict], updated_ts: int,
         counts[r.get("category") or "A股"] = counts.get(r.get("category") or "A股", 0) + 1
     snapshot = {
         "updated_ts": updated_ts,
+        # 刷新时间（含非交易时段心跳）：「数据时间」用它，可持续推进；updated_ts 为真实行情时间
+        "refreshed_ts": refreshed_ts if refreshed_ts is not None else updated_ts,
         "generated_at": generated_at,
         "total": len(rows),
         "counts": counts,
@@ -243,9 +246,10 @@ def _export_store(out_dir: Path) -> dict:
                 }
     calibration = _calibration_from_store(store, rows)
     push_items = _read_jsonl(store.root / "push_records.jsonl")
-    return _write_outputs(out_dir, rows, store.latest_ts(), series, ranges,
+    return _write_outputs(out_dir, rows, store.quote_ts(), series, ranges,
                           calibration, push_items,
-                          _perf_payload(store.root))
+                          _perf_payload(store.root),
+                          refreshed_ts=store.refreshed_ts())
 
 
 def _calibration_from_store(store, rows: list[dict]) -> dict:
