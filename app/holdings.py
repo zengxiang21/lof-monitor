@@ -24,8 +24,13 @@ def _secid(stock_code: str) -> str | None:
 
     注意：港股代码是 5 位（如 00700），不能 zfill 成 6 位——否则既会挂错
     沪深前缀，又会与 A 股同名代码（如 000001）撞主键。
+    美股代码是字母（如 AAPL/NVDA），腾讯行情格式 us+代码。
     """
     raw = str(stock_code).strip()
+    if not raw:
+        return None
+    if raw.isalpha():                    # 美股：AAPL / NVDA / XOM
+        return "us" + raw.upper()
     if not raw.isdigit():
         return None
     if len(raw) == 5:
@@ -38,39 +43,48 @@ def _secid(stock_code: str) -> str | None:
     return None
 
 
-def fetch_holdings(code: str) -> list[dict]:
-    """最新季度的前 TOP_N 大重仓股（含季度标注，去重）。"""
-    try:
-        import akshare as ak
-        df = ak.fund_portfolio_hold_em(symbol=code)
-    except Exception as e:  # noqa: BLE001
-        log.debug("holdings fetch failed %s: %s", code, e)
-        return []
-    if df is None or df.empty:
-        return []
-    # 最新季度（字符串形如 2026年2季度股票投资明细，字典序可比）
-    latest_q = max(df["季度"].astype(str))
-    sub = df[df["季度"].astype(str) == latest_q].copy()
-    sub["占净值比例"] = sub["占净值比例"].astype(float)
-    sub = sub.sort_values("占净值比例", ascending=False).head(TOP_N)
-    seen: dict[str, dict] = {}
-    for _, r in sub.iterrows():
-        stock = str(r["股票代码"]).strip()
-        secid = _secid(stock)
-        if not secid:
-            continue
+def fetch_holdings(code: str, retry: int = 2) -> list[dict]:
+    """最新季度的前 TOP_N 大重仓股（含季度标注，去重）。
+
+    注意：akshare 的 date 参数默认写死 "2024"（函数签名默认值），
+    不传就永远只返回 2024 年数据——必须显式传 ""（最新可用年份）。
+    东财对高频并发有限流，失败时指数退避重试。
+    """
+    for attempt in range(retry + 1):
         try:
-            weight = float(r["占净值比例"])
-        except (TypeError, ValueError):
+            import akshare as ak
+            df = ak.fund_portfolio_hold_em(symbol=code, date="")
+        except Exception as e:  # noqa: BLE001
+            log.debug("holdings fetch failed %s (attempt %d): %s", code, attempt, e)
+            if attempt < retry:
+                time.sleep(1.5 * (attempt + 1))
             continue
-        prev = seen.get(stock)
-        if prev:                      # 同一代码重复披露：保留权重大的
-            prev["weight"] = max(prev["weight"], weight)
-            continue
-        seen[stock] = {"stock": stock, "secid": secid,
-                       "name": str(r.get("股票名称", "")), "weight": weight,
-                       "quarter": latest_q}
-    return list(seen.values())
+        if df is None or df.empty:
+            return []
+        # 最新季度（字符串形如 2026年2季度股票投资明细，字典序可比）
+        latest_q = max(df["季度"].astype(str))
+        sub = df[df["季度"].astype(str) == latest_q].copy()
+        sub["占净值比例"] = sub["占净值比例"].astype(float)
+        sub = sub.sort_values("占净值比例", ascending=False).head(TOP_N)
+        seen: dict[str, dict] = {}
+        for _, r in sub.iterrows():
+            stock = str(r["股票代码"]).strip()
+            secid = _secid(stock)
+            if not secid:
+                continue
+            try:
+                weight = float(r["占净值比例"])
+            except (TypeError, ValueError):
+                continue
+            prev = seen.get(stock)
+            if prev:                      # 同一代码重复披露：保留权重大的
+                prev["weight"] = max(prev["weight"], weight)
+                continue
+            seen[stock] = {"stock": stock, "secid": secid,
+                           "name": str(r.get("股票名称", "")), "weight": weight,
+                           "quarter": latest_q}
+        return list(seen.values())
+    return []
 
 
 def update_fund_holdings(db, code: str) -> int:
@@ -81,9 +95,9 @@ def update_fund_holdings(db, code: str) -> int:
     return len(rows)
 
 
-def update_all_holdings(db, codes: list[str]) -> dict:
+def update_all_holdings(db, codes: list[str], workers: int = 3) -> dict:
     ok, fail = 0, 0
-    with ThreadPoolExecutor(max_workers=NAV_FETCH_CONCURRENCY) as ex:
+    with ThreadPoolExecutor(max_workers=workers) as ex:
         futs = {ex.submit(fetch_holdings, c): c for c in codes}
         for fut in as_completed(futs):
             code = futs[fut]
@@ -104,6 +118,30 @@ def update_all_holdings(db, codes: list[str]) -> dict:
 # ---------- 个股实时行情（腾讯行情，批量） ----------
 _stock_quote_cache = {"ts": 0.0, "data": {}}
 _STOCK_Q_TTL = 60
+
+
+def holdings_summary(db, rows: list[dict]) -> dict:
+    """全量持仓方向摘要（供 export_static 与 /api/holdings 共用）。
+
+    rows: latest_quotes() 输出（需要 name/code）。
+    返回 {code: {"quarter", "text", "tags", "stocks":[{n,w,s}]}}，
+    只含有持仓数据的基金（债券/货币型 fund_holdings 为空，自然缺席）。
+    """
+    from .direction import classify
+    out: dict[str, dict] = {}
+    for r in rows:
+        hs = db.holdings_map(r["code"])
+        if not hs:
+            continue
+        d = classify(r.get("name"), hs)
+        out[r["code"]] = {
+            "quarter": d["quarter"],
+            "text": d["text"],
+            "tags": d["tags"],
+            "stocks": [{"n": h["name"], "w": round(h["weight"], 2),
+                        "s": h.get("secid")} for h in hs[:TOP_N]],
+        }
+    return out
 
 
 def fetch_stock_quotes(secids: list[str], force: bool = False) -> dict:
