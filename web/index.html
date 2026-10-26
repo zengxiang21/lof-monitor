@@ -163,10 +163,26 @@
   .spk{width:52px}
   .spk svg{display:block;margin-left:auto}
   .sh{white-space:nowrap}
+  /* 持仓方向列（季度重仓股归类，见 app/direction.py） */
+  .dir{max-width:150px;font-size:11px;color:var(--sub);line-height:1.45;
+       white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  th.dir{color:var(--sub);font-weight:500}
   .detail{padding:14px 16px;background:var(--bg)}
   .detail h3{font-size:13px;margin-bottom:8px;color:var(--sub);font-weight:500}
   .estline{font-size:12px;color:var(--sub);margin-bottom:8px;line-height:1.7}
   .estline b{color:var(--text);font-weight:500}
+  /* 详情：前十大重仓（季度持仓明细） */
+  .holdings{margin:10px 0 12px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .holdings .h-hd{font-size:12px;color:var(--text);padding:8px 12px;background:var(--soft-accent);
+                  border-bottom:1px solid var(--line)}
+  .holdings .h-hd b{color:var(--accent)}
+  .holdings table{width:100%;border-collapse:collapse}
+  .holdings table th,.holdings table td{font-size:12px;padding:6px 10px;text-align:left}
+  .holdings table th{color:var(--sub);font-weight:500;font-size:11px}
+  .holdings tbody tr+tr td{border-top:1px solid var(--line2)}
+  .holdings td:nth-child(2),.holdings th:nth-child(2){color:var(--sub);font-size:11px}
+  .holdings td:nth-child(3),.holdings th:nth-child(3),
+  .holdings td:nth-child(4),.holdings th:nth-child(4){text-align:right;font-variant-numeric:tabular-nums}
   .hist{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:10px}
   .hist table th,.hist table td{font-size:12px;padding:6px 8px}
   .hist thead th{position:sticky;top:0;background:var(--card);z-index:1}
@@ -460,7 +476,7 @@
     <table id="mainTable">
       <thead><tr>
         <th class="star" title="点击 ☆ 加入自选关注（仅存本机）">☆</th>
-        <th data-key="code">代码</th><th data-key="name">名称</th><th data-key="price">现价</th><th data-key="change_pct">涨跌幅</th>
+        <th data-key="code">代码</th><th data-key="name">名称</th><th class="dir">持仓方向</th><th data-key="price">现价</th><th data-key="change_pct">涨跌幅</th>
         <th class="opt" data-key="amount">成交额</th><th class="opt" data-key="nav">T-1净值</th><th data-key="premium">T-1溢价</th>
         <th data-key="est_premium">估算溢价<span class="src">P1</span></th><th class="spk">走势</th>
         <th class="opt" data-key="share_chg_pct">份额Δ</th><th data-key="sgzt">申购状态</th>
@@ -496,9 +512,10 @@ let state = { cat:"全部", sort:"premium", sortKey:"premium", sortDir:"desc",
               rows:[], counts:{}, updatedTs:0, open:null, onlyWatch:false,
               mode:"api", hist:{}, histTs:0, notice:null, ranges:null,
               gates:new Set(),
-              query:"",            // 搜索关键词（代码/名称）
+              query:"",            // 搜索关键词（代码/名称/重仓股名）
               onlyLimitChg:false,  // 仅看限额异动（|limit_chg_pct| ≥ 20%）
               view:"table",        // 表格 / 卡片双视图
+              holdings:{},         // 持仓方向摘要 {code: {quarter,text,tags,stocks}}
               renderedTs:null };   // 已渲染的数据时间戳（无变化则跳过重建）
 
 // —— 套利方案：五关定义（阈值与 app/pick.py 一致，前端实时筛选） ——
@@ -668,6 +685,13 @@ function metaText(){
 }
 
 // 表格/卡片共用的可见行计算：分类 → 关注 → 限额异动 → 五关 → 搜索（全部 AND）
+// 搜索口径：代码 / 名称 / 前十大重仓股名（搜"新易盛"可找出所有重仓它的 LOF）
+function matchQuery(r, q){
+  if (!q) return true;
+  if (r.code.includes(q) || (r.name||"").includes(q)) return true;
+  const hs = state.holdings[r.code];
+  return !!(hs && hs.stocks && hs.stocks.some(s => (s.n||"").includes(q)));
+}
 function visibleRows(){
   const latestNav = latestNavDate();
   let rows = state.cat==="全部" ? state.rows : state.rows.filter(r=>r.category===state.cat);
@@ -676,9 +700,14 @@ function visibleRows(){
   if (state.gates.size){
     rows = rows.filter(r=>[...state.gates].every(k=>GATES.find(g=>g.key===k).test(r, latestNav)));
   }
-  const q = state.query;
-  if (q) rows = rows.filter(r => r.code.includes(q) || (r.name||"").includes(q));
+  if (state.query) rows = rows.filter(r=>matchQuery(r, state.query));
   return rows;
+}
+// 持仓方向文案（无数据 / 债券货币型显示 —）
+function dirText(r){
+  const hs = state.holdings[r.code];
+  if (!hs || !hs.text) return "—";
+  return hs.text;
 }
 // 限额异动角标（|变动| ≥ 20% 才显示；涨红跌绿，▲提高/▼下调）
 function limitChgBadge(r){
@@ -719,6 +748,14 @@ async function detectMode(){
     }catch(e){}
   }
   // 两者皆败：保持初值，由 load() 统一报错（附自救指引）
+  // 持仓方向摘要（季度级数据，与行情解耦）：API 模式走接口，静态模式读
+  // data/holdings.json（本机生成推送，云端 tick 不产此文件）。失败不阻塞主流程
+  try{
+    const h = state.mode === "static"
+      ? await getJSON(`data/holdings.json?t=${Date.now()}`, {}, 20000)
+      : await getJSON("api/holdings", {}, 15000);
+    state.holdings = (h && h.funds) || {};
+  }catch(e){}
 }
 
 async function load(){
@@ -824,8 +861,7 @@ function gateBaseRows(){
   let base = state.cat==="全部" ? state.rows : state.rows.filter(r=>r.category===state.cat);
   if (state.onlyWatch) base = base.filter(r=>watch.has(r.code));
   if (state.onlyLimitChg) base = limitChgRows(base);
-  const q = state.query;
-  if (q) base = base.filter(r => r.code.includes(q) || (r.name||"").includes(q));
+  if (state.query) base = base.filter(r=>matchQuery(r, state.query));
   return base;
 }
 function renderGates(){
@@ -914,6 +950,7 @@ function renderTable(){
     tr.innerHTML = `
       <td class="star${watched?" on":""}" title="${watched?"取消关注":"加入自选"}">${watched?"★":"☆"}</td>
       <td>${r.code}</td><td>${r.name||""}</td>
+      <td class="dir" title="${dirText(r) === "—" ? "无季度持仓数据（债券/货币型或源站未披露）" : dirText(r) + "（" + (state.holdings[r.code]?.quarter || "") + "）"}">${dirText(r)}</td>
       <td class="${cls(r.change_pct)}">${r.price ?? "—"}</td>
       <td class="${cls(r.change_pct)}">${fmtPct(r.change_pct)}</td>
       <td class="opt">${fmtAmt(r.amount)}</td>
@@ -944,9 +981,21 @@ async function toggleDetail(code){
 
 // 拉取某基金详情数据（API/静态双模式），失败抛错由调用方展示
 async function fetchDetail(code){
+  let holdings = state.holdings[code] || null;
+  // 重仓股实时行情：API 模式按需拉取（60s 服务端缓存），静态模式无此接口
+  let quotes = null;
+  if (state.mode === "api" && holdings && holdings.stocks && holdings.stocks.length){
+    try{
+      const secids = holdings.stocks.map(s=>s.s).filter(Boolean);
+      if (secids.length){
+        const q = await getJSON("api/holdings/quotes?secids=" + encodeURIComponent(secids.join(",")), {}, 12000);
+        quotes = q.quotes || {};
+      }
+    }catch(e){}
+  }
   if (state.mode === "api"){
     const h = await getJSON(`api/lof/${code}/history?limit=60`);
-    return {items: h.items || [], cal: h.calibration || {}};
+    return {items: h.items || [], cal: h.calibration || {}, holdings, quotes};
   }
   // 静态模式：history.json 紧凑序列 [ts, premium, est_premium] → item 格式
   if (!state.histTs){
@@ -971,11 +1020,11 @@ async function fetchDetail(code){
     }
     cal.beta = row.beta;
   }
-  return {items, cal};
+  return {items, cal, holdings, quotes};
 }
 
 // 详情主体 HTML（表格行 / 卡片共用）
-function buildDetailHTML(code, items, cal){
+function buildDetailHTML(code, items, cal, holdings, quotes){
   try{
     const cur = items[items.length-1] || {};
     const srcName = cur.est_source==='official' ? '天天基金官方估值'
@@ -992,7 +1041,29 @@ function buildDetailHTML(code, items, cal){
          估算溢价 <b class="${cls(cur.est_premium)}">${fmtPct(cur.est_premium)}</b>，
          T-1 溢价 <b class="${cls(cur.premium)}">${fmtPct(cur.premium)}</b></div>${errLine}`
       : `<div class="estline">实时估算：暂无（该基金无官方估值、未配置锚点、且无持仓明细，多为债券/货币型）</div>`;
-    return `<h3>${code} ${cur.name||""} · 历史快照（最近 ${items.length} 次，每分钟一次）</h3>${estHtml}` +
+    // 前十大重仓（季度持仓明细 + 方向归类；实时涨跌仅 API 模式有）
+    let holdHtml = "";
+    if (holdings && holdings.stocks && holdings.stocks.length){
+      const q = (holdings.quarter || "").replace("股票投资明细", "");
+      const dirLine = holdings.tags && holdings.tags.length
+        ? ` · 方向：<b>${holdings.text}</b>` : "";
+      const rowsHtml = holdings.stocks.map(s=>{
+        const qt = quotes && quotes[s.s];
+        const pctCell = qt && qt.pct != null
+          ? `<span class="${cls(qt.pct)}">${fmtPct(qt.pct)}</span>` : "—";
+        return `<tr>
+          <td>${s.n || "—"}</td><td class="sgzt">${s.s || ""}</td>
+          <td><b>${s.w != null ? s.w.toFixed(2) + "%" : "—"}</b></td>
+          <td>${pctCell}</td></tr>`;
+      }).join("");
+      holdHtml = `<div class="holdings"><div class="h-hd">前十大重仓（${q || "最新季度"}，占净值比例）${dirLine}</div>
+        <table><thead><tr><th>股票</th><th>代码</th><th>占净值</th><th>实时涨跌</th></tr></thead>
+        <tbody>${rowsHtml}</tbody></table>
+        ${quotes ? "" : '<div class="estline sgzt">实时涨跌仅在本地 API 模式展示（云端静态版无行情接口）</div>'}</div>`;
+    } else if (holdings){
+      holdHtml = `<div class="estline">该基金暂无季度持仓数据（债券/货币型，或源站未披露）</div>`;
+    }
+    return `<h3>${code} ${cur.name||""} · 历史快照（最近 ${items.length} 次，每分钟一次）</h3>${estHtml}${holdHtml}` +
       `<div class="rtabs" id="rt-${code}">` +
         RANGES.map(d=>`<button data-d="${d}" class="${d===7?'on':''}">${d===1?'日内':d+'天'}</button>`).join("") +
       `</div><div id="rc-${code}"><div class="estline">区间数据加载中…</div></div>` +
@@ -1022,23 +1093,23 @@ function bindDetailTabs(box, code){
   });
 }
 
-// 表格行内展开（detail 行 colSpan=13，测试锁定）
+// 表格行内展开（detail 行 colSpan=14，测试锁定）
 async function insertDetail(tr, code){
-  let items, cal = {};
+  let items, cal = {}, holdings = null, quotes = null;
   try{
-    ({items, cal} = await fetchDetail(code));
+    ({items, cal, holdings, quotes} = await fetchDetail(code));
   }catch(e){
     const tr2 = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 13; td.className = "detail";
+    td.colSpan = 14; td.className = "detail";
     td.innerHTML = `<div class="estline">历史数据加载失败：${e.message}</div>`;
     tr2.appendChild(td); tr.after(tr2);
     return;
   }
   const tr2 = document.createElement("tr");
   const td = document.createElement("td");
-  td.colSpan = 13; td.className = "detail";
-  td.innerHTML = buildDetailHTML(code, items, cal);
+  td.colSpan = 14; td.className = "detail";
+  td.innerHTML = buildDetailHTML(code, items, cal, holdings, quotes);
   tr2.appendChild(td);
   tr.after(tr2);
   bindDetailTabs(td, code);
@@ -1050,14 +1121,14 @@ async function insertDetailCard(card, code){
   const div = document.createElement("div");
   div.className = "detail card-detail";
   card.appendChild(div);
-  let items, cal = {};
+  let items, cal = {}, holdings = null, quotes = null;
   try{
-    ({items, cal} = await fetchDetail(code));
+    ({items, cal, holdings, quotes} = await fetchDetail(code));
   }catch(e){
     div.innerHTML = `<div class="estline">历史数据加载失败：${e.message}</div>`;
     return;
   }
-  div.innerHTML = buildDetailHTML(code, items, cal);
+  div.innerHTML = buildDetailHTML(code, items, cal, holdings, quotes);
   bindDetailTabs(div, code);
   loadRange(code, 7);
 }
@@ -1075,7 +1146,7 @@ function renderCards(rows){
       <div class="fc-top">
         <div class="fc-id">
           <div class="fc-name">${r.name||""}</div>
-          <div class="fc-code">${r.code}</div>
+          <div class="fc-code">${r.code}${dirText(r) !== "—" ? ` · <span class="fc-dir">${dirText(r)}</span>` : ""}</div>
         </div>
         <div class="fc-prem">
           <div class="v ${cls(r.premium)}">${fmtPct(r.premium)}</div>
