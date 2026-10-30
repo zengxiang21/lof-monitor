@@ -3495,7 +3495,7 @@
    "category": "A股",
    "nav": 0.9243,
    "nav_date": "2026-10-29",
-   "sgzt": "暂停申购",
+   "sgzt": "开放申购",
    "shzt": "暂停赎回",
    "shares": 84949599.99999999,
    "shares_date": "2026-10-30",
@@ -5332,7 +5332,7 @@
    "category": "A股",
    "nav": 1.5402,
    "nav_date": "2026-10-29",
-   "sgzt": "开放申购",
+   "sgzt": "暂停申购",
    "shzt": "开放赎回",
    "shares": 154065800.0,
    "shares_date": "2026-10-28",
@@ -5552,7 +5552,7 @@
    "category": "A股"
   }
  },
- "updated_ts": 1793368856,
+ "updated_ts": 1793369173,
  "updated": "2026-10-30",
  "group_betas": {
   "holdings": 0.9999,
