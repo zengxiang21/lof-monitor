@@ -1822,7 +1822,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.3219,
-   "beta": 0.9889
+   "beta": 0.9941
   },
   "161227": {
    "name": "国投深证100LOF",
@@ -5552,12 +5552,12 @@
    "category": "A股"
   }
  },
- "updated_ts": 1793738204,
+ "updated_ts": 1793738352,
  "updated": "2026-11-04",
  "group_betas": {
   "holdings": 0.9999,
   "none": 1.0,
-  "anchor": 1.0005,
+  "anchor": 1.0008,
   "official": 1.0004
  }
 }
