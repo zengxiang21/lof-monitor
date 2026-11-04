@@ -2401,8 +2401,8 @@
   "162411": {
    "name": "华宝油气LOF",
    "category": "原油",
-   "nav": 1.0028,
-   "nav_date": "2026-11-02",
+   "nav": 0.992,
+   "nav_date": "2026-11-03",
    "sgzt": "暂停申购",
    "shzt": "开放赎回",
    "shares": 768941300.0,
@@ -2443,8 +2443,8 @@
   "162415": {
    "name": "美国消费LOF",
    "category": "海外",
-   "nav": 2.866,
-   "nav_date": "2026-11-02",
+   "nav": 2.848,
+   "nav_date": "2026-11-03",
    "sgzt": "限制大额申购",
    "shzt": "开放赎回",
    "shares": 73212500.0,
@@ -5544,15 +5544,15 @@
    "shares": 794100.0,
    "shares_date": "2026-11-03",
    "share_chg_pct": 0.0,
-   "nav": 1.04,
-   "nav_date": "2026-11-02",
+   "nav": 1.0397,
+   "nav_date": "2026-11-03",
    "sgzt": "开放申购",
    "shzt": "开放赎回",
    "name": "如意招享FOF",
    "category": "A股"
   }
  },
- "updated_ts": 1793738352,
+ "updated_ts": 1793777228,
  "updated": "2026-11-04",
  "group_betas": {
   "holdings": 0.9999,
