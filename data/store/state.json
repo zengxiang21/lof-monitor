@@ -402,7 +402,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 2.2521,
-   "beta": 1.004
+   "beta": 1.0002
   },
   "160421": {
    "name": "华安智增LOF",
@@ -950,7 +950,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.7906,
-   "beta": 0.9992
+   "beta": 1.0008
   },
   "160722": {
    "name": "嘉实惠泽LOF",
@@ -980,7 +980,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 2.3867,
-   "beta": 1.0048
+   "beta": 0.9978
   },
   "160726": {
    "name": "嘉实瑞享定开",
@@ -1506,7 +1506,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.4858,
-   "beta": 0.9991
+   "beta": 1.0007
   },
   "161117": {
    "name": "易基永旭添利定开",
@@ -1678,7 +1678,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.9983,
-   "beta": 1.0057
+   "beta": 0.9983
   },
   "161130": {
    "name": "纳斯达克100LOF",
@@ -1822,7 +1822,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.3411,
-   "beta": 0.9941
+   "beta": 0.9962
   },
   "161227": {
    "name": "国投深证100LOF",
@@ -2176,7 +2176,7 @@
    "share_chg_pct": -0.40623683852809894,
    "est_source": "anchor",
    "est_nav_raw": 1.1165,
-   "beta": 1.0011
+   "beta": 0.9985
   },
   "161816": {
    "name": "中证90LOF",
@@ -2412,7 +2412,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 0.9676,
-   "beta": 0.9972
+   "beta": 0.9887
   },
   "162412": {
    "name": "医疗基金LOF",
@@ -2564,7 +2564,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 3.1351,
-   "beta": 0.9994
+   "beta": 0.995
   },
   "162720": {
    "name": "广发创业板定开",
@@ -2744,7 +2744,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.4426,
-   "beta": 1.0012
+   "beta": 0.9965
   },
   "163302": {
    "name": "大摩资源LOF",
@@ -3058,7 +3058,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.5543,
-   "beta": 0.9988
+   "beta": 1.0006
   },
   "164703": {
    "name": "汇添富纯债LOF",
@@ -4059,7 +4059,7 @@
    "max_amt": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 2.1173,
-   "beta": 1.0049
+   "beta": 0.9982
   },
   "501019": {
    "name": "军工基金LOF",
@@ -5552,12 +5552,12 @@
    "category": "A股"
   }
  },
- "updated_ts": 1793825685,
+ "updated_ts": 1793825796,
  "updated": "2026-11-05",
  "group_betas": {
   "holdings": 0.9999,
   "none": 1.0,
-  "anchor": 1.0008,
+  "anchor": 0.9975,
   "official": 1.0004
  }
 }
