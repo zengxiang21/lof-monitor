@@ -1678,7 +1678,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.9152,
-   "beta": 0.9942
+   "beta": 0.9983
   },
   "161130": {
    "name": "纳斯达克100LOF",
@@ -1822,7 +1822,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.4188,
-   "beta": 0.9962
+   "beta": 0.9966
   },
   "161227": {
    "name": "国投深证100LOF",
@@ -2412,7 +2412,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 0.8996,
-   "beta": 0.9882
+   "beta": 0.9901
   },
   "162412": {
    "name": "医疗基金LOF",
@@ -5552,12 +5552,12 @@
    "category": "A股"
   }
  },
- "updated_ts": 1793997162,
+ "updated_ts": 1793997414,
  "updated": "2026-11-07",
  "group_betas": {
   "holdings": 0.9999,
   "none": 1.0,
-  "anchor": 0.9958,
+  "anchor": 0.9963,
   "official": 1.0004
  }
 }
