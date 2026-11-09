@@ -402,7 +402,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 2.2023,
-   "beta": 0.9985
+   "beta": 0.9974
   },
   "160421": {
    "name": "华安智增LOF",
@@ -950,7 +950,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.767,
-   "beta": 1.0006
+   "beta": 1.0014
   },
   "160722": {
    "name": "嘉实惠泽LOF",
@@ -980,7 +980,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 2.2757,
-   "beta": 0.994
+   "beta": 0.9967
   },
   "160726": {
    "name": "嘉实瑞享定开",
@@ -1506,7 +1506,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.471,
-   "beta": 1.0008
+   "beta": 1.0016
   },
   "161117": {
    "name": "易基永旭添利定开",
@@ -1678,7 +1678,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.9152,
-   "beta": 0.9983
+   "beta": 1.0014
   },
   "161130": {
    "name": "纳斯达克100LOF",
@@ -1822,7 +1822,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.4188,
-   "beta": 0.9966
+   "beta": 0.9969
   },
   "161227": {
    "name": "国投深证100LOF",
@@ -2176,7 +2176,7 @@
    "share_chg_pct": -0.3569926481721371,
    "est_source": "anchor",
    "est_nav_raw": 1.08,
-   "beta": 0.9964
+   "beta": 0.9978
   },
   "161816": {
    "name": "中证90LOF",
@@ -2412,7 +2412,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 0.8996,
-   "beta": 0.9901
+   "beta": 0.9945
   },
   "162412": {
    "name": "医疗基金LOF",
@@ -2564,7 +2564,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 2.9779,
-   "beta": 0.9916
+   "beta": 0.991
   },
   "162720": {
    "name": "广发创业板定开",
@@ -3058,7 +3058,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 1.5434,
-   "beta": 1.001
+   "beta": 1.0017
   },
   "164703": {
    "name": "汇添富纯债LOF",
@@ -4059,7 +4059,7 @@
    "max_amt": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 2.0252,
-   "beta": 0.9947
+   "beta": 0.9962
   },
   "501019": {
    "name": "军工基金LOF",
@@ -5552,12 +5552,12 @@
    "category": "A股"
   }
  },
- "updated_ts": 1794267205,
+ "updated_ts": 1794267344,
  "updated": "2026-11-10",
  "group_betas": {
   "holdings": 0.9999,
   "none": 1.0,
-  "anchor": 0.9963,
+  "anchor": 0.9975,
   "official": 1.0004
  }
 }
