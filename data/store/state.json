@@ -2412,7 +2412,7 @@
    "limit_chg_pct": 0.0,
    "est_source": "anchor",
    "est_nav_raw": 0.8996,
-   "beta": 0.9945
+   "beta": 0.9925
   },
   "162412": {
    "name": "医疗基金LOF",
@@ -5552,12 +5552,12 @@
    "category": "A股"
   }
  },
- "updated_ts": 1794344343,
+ "updated_ts": 1794344487,
  "updated": "2026-11-11",
  "group_betas": {
   "holdings": 0.9999,
   "none": 1.0,
-  "anchor": 0.9975,
+  "anchor": 0.9974,
   "official": 1.0004
  }
 }
